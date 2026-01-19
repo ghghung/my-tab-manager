@@ -31,8 +31,7 @@ Since this extension is not yet on the Chrome Web Store, you need to install it 
 5.  Select the folder containing the extracted files.
 6.  Open a new tab to see it in action!
 
-<img width="1928" height="1113" alt="image" src="https://github.com/user-attachments/assets/4c99052c-e561-492d-93dc-e4c4c50031a9" />
-
+![Uploading image.png…]()
 
 ## ☁️ How to Set Up Cloud Sync
 
