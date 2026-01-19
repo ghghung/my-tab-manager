@@ -1,0 +1,816 @@
+/* --- Các biến màu và style cơ bản (giữ nguyên) --- */
+:root { --bg-color: #1e1e1e; --panel-bg: #252526; --panel-header-bg: #333333; --side-panel-bg: #2d2d2d; --text-color: #cccccc; --text-color-muted: #888888; --border-color: #3e3e3e; --accent-color: #0e639c; --accent-color-hover: #1177bb; --danger-color: #f44747; --card-bg: #2d2d2d; --card-hover-bg: #3c3c3c; --item-hover-bg: #3c3c3c; --card-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px; --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; --title-color-dark: #cccccc; --title-color-light: #333333; }
+body.light-mode { --bg-color: #f4f7f9; --panel-bg: #ffffff; --panel-header-bg: #e9eef2; --side-panel-bg: #ffffff; --text-color: #333333; --text-color-muted: #666666; --border-color: #d1d8de; --accent-color: #007bff; --accent-color-hover: #0056b3; --danger-color: #dc3545; --card-bg: #ffffff; --card-hover-bg: #f8f9fa; --item-hover-bg: #e9eef2; --card-shadow: rgba(0, 0, 0, 0.08) 0px 2px 5px; }
+body { font-family: var(--font-family); margin: 0; background-color: var(--bg-color); color: var(--text-color); font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
+
+/* --- HEADER (giữ nguyên) --- */
+.top-header { display: flex; align-items: center; justify-content: center; position: relative; gap: 15px; padding: 8px 15px; border-bottom: 0px solid var(--border-color); flex-shrink: 0; }
+#home-btn { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size:20px; background: transparent; padding: 0px; border-radius: 50%; width: 36px; height: 36px; line-height: 1; }
+#home-btn:hover { background-color: var(--item-hover-bg); }
+#search-input { width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 14px; background-color: var(--panel-bg); border: 0px solid var(--border-color); color: var(--text-color); border-radius: 20px; transition: border-color 0.2s ease-in-out; }
+#search-input:hover,
+#search-input:focus {
+  border-color: var(--accent-color); /* Đổi màu viền thành màu nhấn */
+  outline: none; /* Bỏ đường viền mặc định khi focus */
+}
+
+/* --- MAIN LAYOUT (giữ nguyên) --- */
+.main-container { display: grid; grid-template-columns: 240px 1fr 220px; height: 100%; flex-grow: 1; min-height: 0; }
+.center-content-wrapper { display: flex; flex-direction: column; height: 98%; min-height: 0; }
+
+/* --- HOME VIEW --- */
+.home-view { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex-grow: 1; padding: 20px; border-radius: 30px; background-color: var(--panel-bg); }
+#home-title-wrapper { position: relative; margin: 0 0 -20px 0; min-height: 60px; }
+.customizable-title { font-weight: 300; cursor: pointer; padding: 10px; border-radius: 8px; transition: background-color 0.2s; color: var(--title-color-dark); }
+body.light-mode .customizable-title { color: var(--title-color-light); }
+.customizable-title:hover { background-color: var(--item-hover-bg); }
+.title-editor { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 12px; width: 350px; margin-bottom: 15px; z-index: 200; }
+.title-editor-row { display: flex; gap: 15px; align-items: center; }
+.title-editor-group { display: flex; align-items: center; gap: 8px; }
+.title-editor label { font-size: 12px; color: var(--text-color-muted); }
+.title-editor input[type="text"], .title-editor select { background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px; width: 100%; }
+.title-editor input[type="number"] { width: 60px; }
+.style-toggle-btn { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); width: 32px; height: 32px; padding: 0; }
+.style-toggle-btn.toggle-active { background-color: var(--accent-color); border-color: var(--accent-color); color: white; }
+.title-editor input[type="color"] { width: 32px; height: 22px; padding: 0; border: none; }
+#save-title-btn { margin-top: 5px; color: #888888;}
+
+.web-search-wrapper { position: relative; width: 100%; max-width: 580px; margin-bottom: 40px; }
+#web-search-form { position: relative; z-index: 101; }
+#web-search-form #web-search-input { /* Đã đổi selector */
+    width: 100%;
+    padding: 12px 70px 12px 20px; /* Tăng padding phải để không bị che bởi nút */
+    font-size: 16px;
+    font-family: inherit; /* Đảm bảo textarea dùng font của trang */
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    box-sizing: border-box;
+    resize: none; /* Tắt thanh kéo-thả thay đổi kích thước mặc định */
+    overflow-y: hidden; /* Ẩn thanh cuộn dọc khi thay đổi kích thước */
+    line-height: 1.5; /* Cải thiện khoảng cách dòng */
+}
+#web-search-form input:focus { outline: none; border-color: var(--accent-color); }
+#web-search-suggestions-container { position: absolute; top: 50%; left: 0; right: 0; width: 100%; background-color: var(--panel-bg); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 24px 24px; text-align: left; z-index: 100; box-sizing: border-box; display: none; padding-top: 24px; }
+.suggestions-list { list-style: none; margin: 0; padding: 0 0 10px 0; }
+.suggestion-item { padding: 8px 20px; cursor: pointer; }
+.suggestion-item:hover, .suggestion-item.highlighted { background-color: var(--item-hover-bg); }
+.suggestion-item.highlighted { background-color: var(--accent-color); color: white; }
+.shortcuts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; width: 100%; max-width: 580px; }
+.shortcut-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: var(--text-color); padding: 10px; border-radius: 8px; transition: background-color 0.2s; position: relative; }
+.shortcut-item:hover { background-color: var(--item-hover-bg); }
+.shortcut-icon-wrapper { width: 48px; height: 48px; background-color: var(--panel-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.shortcut-icon { width: 28px; height: 28px; }
+.shortcut-name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+.add-shortcut-btn .shortcut-add-icon { font-size: 24px; font-weight: 300; opacity: 0.15; }
+.delete-shortcut-btn {
+    position: absolute;
+    top: -7px; /* Điều chỉnh vị trí một chút cho đẹp hơn */
+    right: 2px;
+    background-color: transparent;      /* NỀN TRONG SUỐT (theo yêu cầu) */
+    color: var(--text-color-muted);   /* MÀU XÁM cho dấu 'x' (tự đổi theo giao diện sáng/tối) */
+    border: none;
+    border-radius: 50%;
+    width: 24px;                      /* Tăng kích thước một chút để dễ bấm hơn */
+    height: 24px;
+    font-size: 16px;                  /* Tăng cỡ chữ 'x' cho rõ hơn */
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s, background-color 0.2s; /* Thêm transition cho mượt mà */
+}
+
+/* Vẫn giữ nguyên logic này để nút chỉ hiện ra khi di chuột vào toàn bộ shortcut */
+.shortcut-item:hover .delete-shortcut-btn {
+    opacity: 1;
+}
+
+/* Thêm hiệu ứng hover cho chính nút xóa */
+.delete-shortcut-btn:hover {
+    background-color: transparent; /* Thêm một lớp nền mờ để người dùng biết đang trỏ vào nút */
+    color: var(--danger-color);             /* CHUYỂN DẤU 'X' SANG MÀU ĐỎ (theo yêu cầu) */
+}
+.collection-view { display: flex; flex-direction: column; height: 100%; min-height: 0; background-color: var(--panel-bg); border-radius: 30px; padding: 0 0px 15px 0px; }
+.side-panel { display: flex; flex-direction: column; transition: background-color 0.3s; min-height: 0; }
+#spaces-panel { border-left: none; border-right: 0px solid var(--border-color); }
+.panel-header { padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.panel-header h2, .panel-header h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-color-muted); }
+.collection-view .panel-header h2 { font-size: 20px; color: var(--text-color); }
+.panel-content, .spaces-list-container { overflow-y: auto; flex-grow: 1; padding: 10px; }
+.spaces-list-container { min-height: 0; }
+.panel-content::-webkit-scrollbar, .spaces-list-container::-webkit-scrollbar { width: 8px; }
+.panel-content::-webkit-scrollbar-track, .spaces-list-container::-webkit-scrollbar-track { background: #55555500; }
+.panel-content::-webkit-scrollbar-thumb, .spaces-list-container::-webkit-scrollbar-thumb { background: #5555554b; border-radius: 4px; }
+body.light-mode .panel-content::-webkit-scrollbar-thumb, body.light-mode .spaces-list-container::-webkit-scrollbar-thumb { background: #ccc; }
+body.light-mode .panel-content::-webkit-scrollbar-thumb:hover, body.light-mode .spaces-list-container::-webkit-scrollbar-thumb:hover { background: #aaa; }
+ul { list-style-type: none; padding: 0; margin: 0; }
+#open-tabs-list li, #collections-list li { padding: 10px 15px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; transition: background-color 0.2s; white-space: nowrap; margin-bottom: 2px; }
+#open-tabs-list li { justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; }
+#collections-list li { justify-content: space-between; }
+#collections-list li.drag-over-indicator { border-top: 2px solid var(--accent-color); }
+.collection-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; }
+#open-tabs-list li:hover, #collections-list li:hover { background-color: var(--item-hover-bg); }
+#collections-list li.active { background-color: var(--accent-color); color: white; }
+#open-tabs-list li img { width: 16px; height: 16px; margin-right: 10px; flex-shrink: 0; }
+.section { margin-bottom: 25px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 5px 10px 5px; }
+.section-header h4 { margin: 0; font-size: 18px; color: var(--text-color); }
+.cards-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; padding: 10px; border-radius: 5px; min-height: 100px; transition: background-color 0.3s; }
+.cards-container.drag-over { background-color: rgba(120, 120, 120, 0.1); }
+.card { background-color: var(--card-bg); border-radius: 10px; box-shadow: var(--card-shadow); padding: 12px; cursor: pointer; transition: background-color 0.2s, transform 0.2s; position: relative; border: 1px solid var(--border-color); }
+.card:hover { transform: translateY(-2px); background-color: var(--card-hover-bg); }
+.card.hidden { display: none; }
+.card.dragging { opacity: 0.5; }
+.card-header { display: flex; align-items: center; margin-bottom: 8px; }
+.card-header img { width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0;}
+.card-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color); }
+.card-note { font-size: 12px; color: var(--text-color-muted); width: 100%; padding: 4px 0; background-color: transparent; border: none; resize: none; font-family: inherit; }
+.card-note:hover { transform: translateY(0px); background-color: var(--panel-header-bg); border-radius: 10px }
+.card-note:focus { outline: none; color: var(--text-color); }
+.card .delete-btn { position: absolute; top: 0px; right: -3px; background: none; border: none; cursor: pointer; font-size: 16px; color: var(--text-color-muted); display: none; }
+.card:hover .delete-btn { display: block; }
+.card .delete-btn:hover { color: var(--danger-color); }
+button { cursor: pointer; background-color: var(--accent-color); color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 14px; transition: background-color 0.2s; }
+button:hover { background-color: var(--accent-color-hover); }
+#add-collection-btn { font-size: 20px; line-height: 1; padding: 2px 8px; }
+.action-button, .delete-button {
+    background: transparent; /* Đặt nền trong suốt mặc định */
+}
+
+/* Chỉ thêm màu nền khi di chuột qua */
+.action-button:hover {
+    background-color: #666;
+}
+body.light-mode .action-button:hover {
+    background-color: #5a6268;
+}
+
+.delete-button:hover {
+    background-color: #5a6268;
+}
+.section-header-actions { display: flex; align-items: center; gap: 5px; }
+.move-section-up-btn { background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-color-muted); padding: 0 5px; }
+.move-section-up-btn:hover { color: var(--text-color); }
+.move-section-up-btn:disabled { color: var(--border-color); cursor: not-allowed; }
+.collection-actions { display: flex; align-items: center; opacity: 0; transition: opacity 0.2s ease-in-out; }
+#collections-list li:hover .collection-actions, #collections-list li.active .collection-actions { opacity: 1; }
+.collection-action-btn { background: transparent; border: none; font-size: 16px; padding: 2px 4px; margin-left: 4px; color: var(--text-color-muted); border-radius: 4px; line-height: 1; }
+.collection-action-btn:hover { background-color: var(--item-hover-bg); color: var(--text-color); }
+.collection-action-btn.delete-btn:hover { color: var(--danger-color); }
+#collections-list li.active .collection-action-btn { color: white; }
+.spaces-footer {
+    flex-shrink: 0;
+    padding: 5px;
+    
+    /* BẮT ĐẦU THAY ĐỔI */
+    display: flex; /* Sắp xếp các nút theo hàng ngang */
+    justify-content: flex-start; /* Căn giữa các nút */
+    gap: 8px; /* Khoảng cách giữa các nút */
+}
+
+/* Bỏ các quy tắc cũ không cần thiết */
+.setting-item, .io-buttons {
+    margin: 0;
+    padding: 0;
+    display: flex; /* Giúp các nút bên trong io-buttons thẳng hàng */
+    gap: 8px;
+}
+
+/* Định dạng lại tất cả các nút trong footer thành icon vuông */
+.spaces-footer button {
+    width: 30px;
+    height: 30px;
+    padding: 0; /* Bỏ padding cũ */
+    font-size: 15px; /* Tăng kích thước icon/chữ */
+    line-height: 30px; /* Căn giữa icon theo chiều dọc */
+    text-align: center; /* Căn giữa icon theo chiều ngang */
+    
+    /* Thêm hiệu ứng hover chung */
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--text-color-muted);
+}
+
+.spaces-footer button:hover {
+    background-color: var(--item-hover-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+    border-radius: 50%
+}
+.spaces-list-container { flex-grow: 1; overflow-y: auto; min-height: 0; padding: 10px; }
+.spaces-list-container::-webkit-scrollbar { width: 8px; }
+.spaces-list-container::-webkit-scrollbar-track { background: #55555500 }
+.spaces-list-container::-webkit-scrollbar-thumb { background: #55555500; border-radius: 4px; }
+body.light-mode .spaces-list-container::-webkit-scrollbar-thumb { background: #cccccc00; }
+body.light-mode .spaces-list-container::-webkit-scrollbar-thumb:hover { background: #aaaaaa28; }
+#refresh-tabs-btn { background: transparent; border: none; color: var(--text-color-muted); font-size: 18px; padding: 0 5px; border-radius: 4px; line-height: 1; }
+#refresh-tabs-btn:hover { color: var(--text-color); background-color: var(--item-hover-bg); }
+/* --- CSS CHO NÚT ĐÓNG TAB --- */
+
+/* Thêm position: relative để nút con có thể định vị theo thẻ li */
+#open-tabs-list li {
+    position: relative;
+}
+
+/* Định dạng cho phần title để nó không bị nút đè lên */
+.open-tab-title {
+    flex-grow: 1; /* Cho phép title giãn ra */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 20px; /* Tạo khoảng trống cho nút 'x' */
+}
+
+.close-tab-btn {
+    /* Định vị nút ở góc trên bên phải */
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+
+    /* Tùy chỉnh giao diện */
+    background: transparent;
+    border: none;
+    color: var(--text-color-muted);
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px 5px;
+    border-radius: 50%;
+    cursor: pointer;
+
+    /* Mặc định ẩn nút đi */
+    display: none; 
+}
+
+/* Khi di chuột vào một thẻ li, hiện nút 'x' bên trong nó ra */
+#open-tabs-list li:hover .close-tab-btn {
+    display: block;
+}
+
+/* Khi di chuột vào chính nút 'x', đổi màu sang màu đỏ */
+.close-tab-btn:hover {
+    color: var(--danger-color);
+    background-color: rgba(255, 0, 0, 0.1); /* Thêm một lớp nền đỏ mờ cho đẹp hơn */
+}
+
+#add-section-btn {
+    background-color: var(--accent-color);
+    border-radius: 20px; /* Sử dụng biến màu blue chính của giao diện */
+}
+
+#add-section-btn:hover {
+    background-color: var(--accent-color-hover); /* Sử dụng biến màu blue khi di chuột qua */
+}
+
+
+.section.dragging {
+    opacity: 0.5;
+}
+
+.section.drag-over-indicator {
+    /* Tạo một đường kẻ phía trên để chỉ báo vị trí thả */
+    border-top: 2px solid var(--accent-color);
+    /* Thêm một chút margin để đường kẻ rõ hơn */
+    margin-top: -2px; 
+}
+
+.section-header[draggable="true"] {
+    cursor: grab;
+}
+
+.section-header[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+#web-search-ai-btn {
+    /* Định vị tuyệt đối ở góc phải, bên trong ô tìm kiếm */
+    position: absolute;
+    right: 5px; /* Căn lề phải */
+    top: 50%;
+    transform: translateY(-50%); /* Căn giữa theo chiều dọc */
+
+    z-index: 102;
+    
+    /* Tùy chỉnh giao diện */
+    background: transparent;
+    border: none;
+    color: var(--text-color-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    line-height: 1;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#web-search-ai-btn:hover {
+    background-color: var(--item-hover-bg);
+    color: var(--text-color);
+}
+
+/* Thêm padding bên phải cho ô input để chữ không bị nút đè lên */
+#web-search-form input {
+    padding-right: 50px !important; /* !important để ghi đè lên style cũ */
+}
+
+#web-search-normal-btn {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 102;
+    
+    background: transparent;
+    border: none;
+    color: var(--text-color-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    line-height: 1;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#web-search-normal-btn:hover {
+    background-color: var(--item-hover-bg);
+    color: var(--text-color);
+}
+
+/* --- CSS CHO POPUP CÀI ĐẶT NÚT HOME ẢO --- */
+#vhb-settings-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
+    justify-content: center; z-index: 1001; backdrop-filter: blur(5px);
+}
+.settings-modal { /* Dùng chung class với popup video */
+    background-color: var(--panel-bg); padding: 25px; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 200px;
+    position: relative; display: flex; flex-direction: column; gap: 20px;
+    border: 1px solid var(--border-color);
+    align-items: center; 
+}
+.settings-modal h3 { margin: 0; text-align: center; color: var(--text-color); }
+.slider-wrapper span { min-width: 40px; text-align: right; }
+#vhb-emoji-input { width: 50px; text-align: center; font-size: 18px; }
+
+/* Style cho Toggle Switch */
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
+input:checked + .slider { background-color: var(--accent-color); }
+input:focus + .slider { box-shadow: 0 0 1px var(--accent-color); }
+input:checked + .slider:before { transform: translateX(22px); }
+.slider.round { border-radius: 28px; }
+.slider.round:before { border-radius: 50%; }
+
+#local-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#local-search-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--text-color-muted);
+  cursor: pointer;
+  padding: 5px;
+}
+
+#local-search-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent; /* Đường gạch chân mờ */
+  color: var(--text-color);
+  width: 0; /* Mặc định ẩn đi */
+  opacity: 0;
+  padding: 4px 0;
+  transition: width 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  text-align: right; /* Căn lề phải */
+  font-size: 14px;
+}
+#collection-actions {
+  display: flex; /* Sắp xếp các item bên trong (ô tìm kiếm, nút add) theo hàng ngang */
+  align-items: center; /* Căn giữa các item theo chiều dọc cho đẹp */
+  gap: 10px; /* Tạo một khoảng cách nhỏ giữa ô tìm kiếm và nút "Add List" */
+}
+
+/* Hiệu ứng khi focus vào ô input hoặc container của nó */
+#local-search-container:focus-within #local-search-input {
+  width: 150px; /* Chiều rộng khi hiện ra */
+  opacity: 1;
+  padding: 4px 8px;
+  border-bottom-color: var(--accent-color); /* Hiện đường gạch chân */
+}
+
+#local-search-input:focus {
+  outline: none;
+}
+/* --- KẾT THÚC: STYLE CHO TÌM KIẾM LOCAL --- */
+
+/* --- CSS CHO GỢI Ý TÌM KIẾM TRÊN HEADER --- */
+#header-search-wrapper {
+    flex-grow: 1;
+    position: relative;
+    margin: 0;
+}
+
+#header-search-suggestions-container {
+    position: absolute;
+    top: 120%;
+    left: 0;
+    right: 0;
+    background-color: rgba(37, 37, 38, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    border-radius: 20px;
+    z-index: 1000;
+    display: none;
+    padding-top: 12px;
+}
+
+/* TÙY CHỈNH CHO GIAO DIỆN SÁNG (LIGHT MODE) */
+body.light-mode #header-search-suggestions-container {
+    background-color: rgba(255, 255, 255, 0.25); /* Nền trắng trong suốt */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* STYLE CHO TỪNG DÒNG GỢI Ý */
+#header-search-suggestions-container .suggestion-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-color);
+    transition: background-color 0.1s;
+}
+
+/* Hiệu ứng khi di chuột vào dòng gợi ý */
+#header-search-suggestions-container .suggestion-item:hover,
+#header-search-suggestions-container .suggestion-item.highlighted {
+    background-color: var(--accent-color); /* Dùng màu chủ đạo (xanh) */
+    color: white;
+}
+
+/* --- BẮT ĐẦU: STYLE CHO ICON EMOJI TRONG DANH SÁCH TAB --- */
+.open-tab-emoji-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    
+    /* Các thuộc tính để căn giữa emoji hoàn hảo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px; /* Kích thước emoji */
+    line-height: 1;  /* Ngăn chiều cao dòng ảnh hưởng */
+}
+
+/* --- BẮT ĐẦU: STYLE CHO KÉO THẢ SHORTCUT --- */
+
+/* Style cho shortcut đang được kéo */
+.shortcut-item.dragging {
+    opacity: 0.4;
+}
+
+/* Style cho vị trí mà shortcut sẽ được thả vào */
+.shortcut-item.drag-over-indicator {
+    background-color: var(--item-hover-bg);
+    transform: scale(1.05);
+    outline: 2px dashed var(--accent-color);
+}
+
+/* Container chính: Chứa hình nền */
+#modern-container {
+    flex-grow: 1;        /* Chiếm hết không gian còn lại */
+    height: 100%;        /* Chiếm hết chiều cao cha */
+    width: 100%;         /* Chiếm hết chiều rộng */
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;    /* Ẩn thanh cuộn thừa */
+    display: flex;       /* Flexbox để căn chỉnh con */
+    flex-direction: column;
+    border-radius: 30px; 
+    min-height: 0;       /* Quan trọng cho Firefox/Chrome flex container */
+}
+
+/* Khu vực Desktop: Icon xếp dọc bên trái */
+#desktop-area {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 20px;
+    /* Quan trọng: Cho phép cuộn nếu quá nhiều icon, không đẩy Dock đi */
+    overflow-y: auto; 
+    height: 0; /* Mẹo Flexbox để scroll hoạt động đúng */
+}
+
+/* Icon trên Desktop */
+.desktop-icon {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: default;
+    border-radius: 8px;
+    padding: 5px;
+    transition: background-color 0.2s;
+}
+
+.desktop-icon:hover, .desktop-icon.selected {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.desktop-icon-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px; /* Bo góc icon */
+    object-fit: cover;
+    margin-bottom: 5px;
+    box-shadow: none; 
+}
+
+.desktop-icon-name {
+    font-size: 12px;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    /* Yêu cầu số 3: Giới hạn 1 dòng + dấu ... */
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%; /* Bắt buộc để ellipsis hoạt động */
+    display: block;
+}
+
+/* Nút Add Shortcut mờ mờ trên Desktop */
+.desktop-add-btn {
+    opacity: 0.6;
+}
+.desktop-add-btn:hover {
+    opacity: 1;
+}
+.desktop-add-btn .desktop-icon-img {
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+/* --- THANH DOCK --- */
+#macos-dock-container {
+    /* Sửa lỗi 1: Đảm bảo dock không bị co lại */
+    flex-shrink: 0; 
+    height: auto; /* Chiều cao tự động theo nội dung */
+    min-height: 60px;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
+    position: relative;
+    z-index: 100;
+}
+
+#macos-dock {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 8px 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    height: 35px;
+}
+
+/* Icon trong Dock */
+.dock-item {
+    width: 35px;
+    height: 35px;
+    transition: width 0.2s, height 0.2s, margin-bottom 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.dock-item img {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    object-fit: cover;
+    /* Yêu cầu số 2: Xóa bóng đổ icon dock */
+    box-shadow: none; 
+    transition: transform 0.2s;
+}
+
+/* Hiệu ứng phóng to khi hover (Mô phỏng macOS) */
+.dock-item:hover {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 5px; /* Đẩy lên trên */
+}
+/* Các item lân cận (cần JS hỗ trợ để mượt hơn, nhưng CSS này là cơ bản) */
+.dock-item:hover + .dock-item, 
+.dock-item:has(+ .dock-item:hover) {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 3px;
+}
+
+/* Tooltip tên ứng dụng trên Dock */
+.dock-item::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    margin-bottom: 10px;
+}
+.dock-item:hover::after {
+    opacity: 1;
+}
+
+/* Vách ngăn trong Dock */
+.dock-separator {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.3);
+    margin: 0 4px;
+    align-self: center;
+}
+
+/* --- MENU CHUỘT PHẢI --- */
+.context-menu {
+    position: absolute;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 5px 0;
+    min-width: 120px;
+    z-index: 9999;
+    flex-direction: column;
+}
+.context-menu-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 13px;
+}
+.context-menu-item:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+.context-menu-item.delete:hover {
+    background-color: var(--danger-color);
+}
+
+/* --- SIDEBAR THU GỌN --- */
+
+/* 1. Thay đổi Grid chính khi sidebar thu gọn */
+/* Chúng ta sẽ gán class 'sidebar-collapsed' cho body hoặc main-container */
+body.sidebar-collapsed .main-container {
+    grid-template-columns: 60px 1fr 220px; /* Thu hẹp cột trái từ 240px xuống 60px */
+}
+
+/* 2. Style cho panel khi thu gọn */
+#spaces-panel.collapsed {
+    align-items: center; /* Căn giữa mọi thứ theo chiều dọc */
+    padding: 0;
+}
+
+/* 3. Ẩn tiêu đề SPACES và nút Add (+) */
+#spaces-panel.collapsed #spaces-title,
+#spaces-panel.collapsed #add-collection-btn {
+    display: none;
+}
+
+/* 4. Điều chỉnh header để chỉ hiện nút Toggle */
+#spaces-panel.collapsed .panel-header {
+    justify-content: center;
+    padding: 15px 0;
+    width: 100%;
+}
+
+#spaces-panel.collapsed .panel-controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* 5. Xử lý danh sách Collections */
+#spaces-panel.collapsed #collections-list li {
+    justify-content: center;
+    padding: 10px 5px;
+}
+
+/* --- SỬA LỖI HIỂN THỊ KÝ TỰ ĐẦU TIÊN --- */
+
+/* 1. Ẩn tên gốc đi nhưng giữ lại khung vị trí */
+#spaces-panel.collapsed .collection-name {
+    visibility: hidden; /* Ẩn nội dung chữ */
+    width: 30px;        /* Chiều rộng cố định */
+    height: 20px;       /* Chiều cao cố định để giữ chỗ */
+    position: relative; /* Làm mốc tọa độ cho ký tự đầu */
+    display: inline-block; /* Đảm bảo nó là một khối */
+}
+
+/* 2. Hiển thị ký tự đầu tiên thông qua lớp giả */
+#spaces-panel.collapsed .collection-name::before {
+    content: attr(data-initial); /* Lấy nội dung từ JS */
+    visibility: visible;         /* Hiện lại (ghi đè hidden của cha) */
+    
+    /* Căn giữa tuyệt đối vào khung của cha */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Style chữ */
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Ẩn các nút đổi tên/xóa khi thu gọn để tránh vỡ layout */
+#spaces-panel.collapsed .collection-actions {
+    display: none !important;
+}
+
+/* 6. Xử lý Footer (Hiển thị dọc) */
+#spaces-panel.collapsed .spaces-footer {
+    flex-direction: column; /* Xếp dọc */
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+#spaces-panel.collapsed .setting-item, 
+#spaces-panel.collapsed .io-buttons {
+    flex-direction: column; /* Xếp dọc các nút con (import/export) */
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Hiệu ứng chuyển động mượt mà */
+.main-container {
+    transition: grid-template-columns 0.3s ease;
+}
+
+.panel-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Khoảng cách giữa 2 nút */
+}
+
+/* Tác động lên cả nút + và nút < */
+.panel-controls button {
+    width: 24px;        /* Chiều rộng cố định */
+    height: 24px;       /* Chiều cao cố định */
+    padding: 0;         /* Xóa padding để nội dung căn giữa chuẩn */
+    
+    /* Căn giữa icon/chữ bên trong */
+    display: flex;      
+    align-items: center;
+    justify-content: center;
+    
+    border-radius: 6px; /* Bo góc */
+    font-size: 14px;    /* Kích thước icon */
+    line-height: 1;
+}
+
+/* Tùy chỉnh riêng cho nút Add (+) nếu cần chỉnh lại vị trí một chút cho cân */
+#add-collection-btn {
+    font-size: 15px; /* Dấu cộng thường trông nhỏ hơn nên tăng size lên xíu */
+    padding-bottom: 2px; /* Đẩy lên 1 chút cho cân tâm */
+}

@@ -1,0 +1,47 @@
+function doPost(e) {
+  try {
+    // 1. Lấy dữ liệu từ tiện ích gửi lên
+    var data = e.postData.contents;
+    var fileName = "my-tab-manager-data.json";
+    
+    // 2. Kiểm tra xem file đã tồn tại chưa
+    var files = DriveApp.getFilesByName(fileName);
+    var file;
+    
+    if (files.hasNext()) {
+      // Nếu có rồi thì cập nhật nội dung
+      file = files.next();
+      file.setContent(data);
+    } else {
+      // Nếu chưa có thì tạo mới
+      file = DriveApp.createFile(fileName, data);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success", time: new Date()}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  try {
+    var fileName = "my-tab-manager-data.json";
+    var files = DriveApp.getFilesByName(fileName);
+    
+    if (files.hasNext()) {
+      var file = files.next();
+      var content = file.getBlob().getDataAsString();
+      return ContentService.createTextOutput(content)
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}

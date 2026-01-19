@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>My Tab Manager</title>
+    <!-- START: CẬP NHẬT FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Babylonica&family=Bad+Script&family=Ballet&family=Black+And+White+Picture&family=Bonbon&family=Bungee+Spice&family=Cal+Sans&family=Caveat&family=Cherry+Bomb+One&family=Crafty+Girls&family=Damion&family=Dancing+Script&family=Dokdo&family=Edu+Australia+VIC+WA+NT+Hand+Arrows&family=Emilys+Candy&family=Gamja+Flower&family=Gochi+Hand&family=Grandiflora+One&family=Griffy&family=Henny+Penny&family=Homemade+Apple&family=Indie+Flower&family=Ingrid+Darling&family=Jua&family=Kablammo&family=Lexend+Mega&family=Licorice&family=Limelight&family=Lobster&family=Macondo&family=Major+Mono+Display&family=Mansalva&family=Meddon&family=Moirai+One&family=Molle&family=Monsieur+La+Doulaise&family=Moo+Lah+Lah&family=Ms+Madi&family=Mystery+Quest&family=Neonderthaw&family=Pacifico&family=Parkinsans&family=Patrick+Hand&family=Permanent+Marker&family=Playwrite+Australia+Tasmania&family=Playwrite+Netherland&family=Princess+Sofia&family=Puppies+Play&family=Quando&family=Ribeye&family=Ribeye+Marrow&family=Rubik+Bubbles&family=Sail&family=Sarina&family=Satisfy&family=Schoolbell&family=Sevillana&family=Shadows+Into+Light&family=Silkscreen&family=Sniglet&family=Snowburst+One&family=Twinkle+Star&family=UnifrakturCook&family=Warnes&family=Winky+Rough&display=swap" rel="stylesheet">
+    <!-- END: CẬP NHẬT FONT -->
+    <link rel="stylesheet" href="manager.css">
+</head>
+<body>
+    <header class="top-header">
+        <button id="home-btn" title="Anhtalaghung - creator of this extension.">✈️</button>
+        <div id="header-search-wrapper" class="web-search-wrapper">
+            <input type="text" id="search-input" placeholder="Search the web...">
+            <div id="header-search-suggestions-container"></div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Cột trái: Spaces -->
+        <aside class="side-panel" id="spaces-panel">
+            <div class="panel-header">
+                <h3 id="spaces-title">SPACES</h3>
+                <div class="panel-controls"> <!-- Gom nhóm nút lại -->
+                    <button id="add-collection-btn" title="New Collection">+</button>
+                    <button id="toggle-sidebar-btn" title="Collapse Sidebar">◀</button> <!-- Nút Mới -->
+                </div>
+            </div>
+            <div class="spaces-list-container">
+                <ul id="collections-list"></ul>
+            </div>
+            <div class="spaces-footer">
+                <div class="setting-item">
+                    <button id="theme-toggle-btn">☼</button>
+                </div>
+                <div class="setting-item">
+                    <button id="vhb-settings-btn" title="Virtual home button">⏣</button>
+                </div>
+                <div class="setting-item">
+                    <button id="cloud-sync-btn" title="Cloud Sync">☁</button> <!-- Nút Mới -->
+                </div>
+                <div class="setting-item io-buttons">
+                    <button id="export-btn" title="Export to File">⤿</button>
+                    <button id="import-btn" title="Import from File">⤸</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none;">
+                </div>
+                <div class="setting-item">
+                    <button id="view-toggle-btn" title="Switch Interface">❀</button> <!-- Nút Mới -->
+                </div>
+            </div>
+
+            <!-- THÊM POPUP CÀI ĐẶT SYNC VÀO CUỐI BODY (bên cạnh popup nút home ảo) -->
+            <div id="sync-settings-modal-overlay" style="display: none;">
+                <div class="settings-modal">
+                    <button id="close-sync-modal-btn" class="close-modal-btn">&times;</button>
+                    <h3>Cloud Sync (Google Drive)</h3>
+                    
+                    <div class="modal-section" style="width: 100%;">
+                        <label for="sync-url-input" style="display:block; margin-bottom:5px;">Google Script URL:</label>
+                        <input type="text" id="sync-url-input" placeholder="Paste Web App URL here..." style="width: 100%; padding: 8px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px;">
+                        <p style="font-size: 11px; color: var(--text-color-muted); margin-top: 5px;">
+                            Dán URL từ Google Apps Script Web App để kích hoạt đồng bộ.
+                        </p>
+                    </div>
+
+                    <div class="modal-section" style="flex-direction: row; gap: 10px;">
+                        <button id="manual-pull-btn" class="action-button">⬇ Pull (Lấy về)</button>
+                        <button id="manual-push-btn" class="action-button">⬆ Push (Đẩy lên)</button>
+                    </div>
+                    
+                    <div id="sync-status" style="font-size: 12px; color: var(--accent-color); height: 20px;"></div>
+
+                    <button id="save-sync-settings-btn" class="action-button" style="width: 100%; margin-top: 10px;">Save & Auto-Sync</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Phần giữa: Nội dung thay đổi -->
+        <div class="center-content-wrapper">
+            <!-- Chế độ xem HOME -->
+            <main id="home-container" class="home-view">                
+                <div id="home-title-wrapper">
+                    <h1 id="home-title" class="customizable-title" title="Edit"></h1>
+                    <div id="home-title-editor" class="title-editor" style="display: none;">
+                        <div class="title-editor-row">
+                            <label for="title-text-input">Content:</label>
+                            <input type="text" id="title-text-input">
+                        </div>
+                        <div class="title-editor-row">
+                             <div class="title-editor-group">
+                                <label for="title-font-select">Font:</label>
+                                <!-- START: CẬP NHẬT FONT -->
+                                <select id="title-font-select">
+                                    <option>Moirai One</option>
+                                    <option>Emilys Candy</option>
+                                    <option>Mystery Quest</option>
+                                    <option>Bonbon</option>
+                                    <option>Griffy</option>
+                                    <option>Cherry Bomb One</option>
+                                    <option>Jua</option>
+                                    <option>Twinkle Star</option>
+                                    <option>Princess Sofia</option>
+                                    <option>Gamja Flower</option>
+                                    <option>Ms Madi</option>
+                                    <option>Sarina</option>
+                                    <option>Homemade Apple</option>
+                                    <option>Ingrid Darling</option>
+                                    <option>Damion</option>
+                                    <option>Henny Penny</option>
+                                    <option>Schoolbell</option>
+                                    <option>Snowburst One</option>
+                                    <option>Satisfy</option>
+                                    <option>Moo Lah Lah</option>
+                                    <option>Molle</option>
+                                    <option>Crafty Girls</option>
+                                    <option>Puppies Play</option>
+                                    <option>Ribeye</option>
+                                    <option>Ribeye Marrow</option>
+                                    <option>Winky Rough</option>
+                                    <option>Playwrite Australia Tasmania</option>
+                                    <option>Playwrite Netherland</option>
+                                    <option>Sniglet</option>
+                                    <option>Gochi Hand</option>
+                                    <option>Licorice</option>
+                                    <option>Macondo</option>
+                                    <option>Neonderthaw</option>
+                                    <option>Sevillana</option>
+                                    <option>Sail</option>
+                                    <option>Mansalva</option>
+                                    <option>Rubik Bubbles</option>
+                                    <option>Warnes</option>
+                                    <option>Parkinsans</option>
+                                    <option>Black And White Picture</option>
+                                    <option>Edu Australia VIC WA NT Hand Arrows</option>
+                                    <option>Quando</option>
+                                    <option>Grandiflora One</option>
+                                    <option>Limelight</option>
+                                    <option>Monsieur La Doulaise</option>
+                                    <option>Ballet</option>
+                                    <option>Babylonica</option>
+                                    <option>Meddon</option>
+                                    <option>UnifrakturCook</option>
+                                    <option>Kablammo</option>
+                                    <option>Dokdo</option>
+                                    <option>Silkscreen</option>
+                                    <option>Major Mono Display</option>
+                                    <option>Bad Script</option>
+                                    <option>Lexend Mega</option>
+                                    <option>Cal Sans</option>
+                                    <option>Pacifico</option>
+                                    <option>Lobster</option>
+                                    <option>Caveat</option>
+                                    <option>Dancing Script</option>
+                                    <option>Shadows Into Light</option>
+                                    <option>Indie Flower</option>
+                                    <option>Patrick Hand</option>
+                                    <option>Permanent Marker</option>
+                                    <option>Bungee Spice</option>
+                                    <option>Arial</option>
+                                    <option>Verdana</option>
+                                    <option>Georgia</option>
+                                </select>
+                                <!-- END: CẬP NHẬT FONT -->
+                            </div>
+                            <div class="title-editor-group">
+                                <label for="title-size-input">Font size:</label>
+                                <input type="number" id="title-size-input" min="12" max="100" step="1">
+                            </div>
+                        </div>
+                        <div class="title-editor-row">
+                            <div class="title-editor-group">
+                                <label>Typeface:</label>
+                                <button id="title-bold-btn" class="style-toggle-btn"><b>B</b></button>
+                                <button id="title-italic-btn" class="style-toggle-btn"><i>I</i></button>
+                            </div>
+                        </div>
+                        <div class="title-editor-row">
+                            <div class="title-editor-group">
+                                <label for="title-color-dark">Dark Theme:</label>
+                                <input type="color" id="title-color-dark">
+                            </div>
+                             <div class="title-editor-group">
+                                <label for="title-color-light">Light Theme:</label>
+                                <input type="color" id="title-color-light">
+                            </div>
+                        </div>
+                        <button id="save-title-btn" class="action-button">🍀𝓁𝓊𝒸𝓀𝓎🍀</button>
+                    </div>
+                </div>
+
+                <div class="web-search-wrapper">
+                    <form id="web-search-form">
+                        <textarea id="web-search-input" placeholder="Search the web" rows="1"></textarea>
+                    </form>
+                    <button id="web-search-ai-btn" title="AI mode">✦</button>
+                    <button id="web-search-normal-btn" title="Search">🔎︎</button>
+                    <div id="web-search-suggestions-container"></div>
+                </div>
+                <div id="shortcuts-grid" class="shortcuts-grid"></div>
+            </main>
+
+            <!-- START: GIAO DIỆN MODERN (MACOS STYLE) -->
+            <main id="modern-container" class="modern-view" style="display: none;">
+                <!-- Khu vực Desktop (Icon dọc bên trái) -->
+                <div id="desktop-area"></div>
+                
+                <!-- Thanh Dock ở dưới cùng -->
+                <div id="macos-dock-container">
+                    <div id="macos-dock"></div>
+                </div>
+
+                <!-- Input ẩn để upload hình nền -->
+                <input type="file" id="wallpaper-input" accept="image/*" style="display: none;">
+            </main>
+            <!-- END: GIAO DIỆN MODERN -->
+            <!-- START: MENU CHUỘT PHẢI TÙY CHỈNH -->
+            <div id="context-menu" class="context-menu" style="display: none;">
+                <div class="context-menu-item" id="ctx-open-app">Open in new App (Windows App)</div>
+                <div class="context-menu-item" id="ctx-open-new">Open in New Tab</div>
+                <div class="context-menu-item" id="ctx-rename">Rename</div>
+                <div class="context-menu-item delete" id="ctx-delete">Delete</div>
+            </div>
+            <!-- END: MENU CHUỘT PHẢI -->
+
+            <!-- Chế độ xem COLLECTION -->
+            <main id="collection-view-container" class="collection-view" style="display: none;">
+                <div class="panel-header" id="main-panel-header">
+                    <h2 id="current-collection-name"></h2>
+                    <div id="collection-actions">
+                        <div id="local-search-container">
+                            <input type="text" id="local-search-input" placeholder="Find saved cards...">
+                            <button id="local-search-btn">🔎︎</button>
+                        </div>
+                        <button id="add-section-btn" class="action-button">Add List</button>
+                    </div>
+                    <!-- END: THÊM Ô TÌM KIẾM LOCAL -->
+                </div>
+                <div class="panel-content" id="sections-container"></div>
+            </main>
+        </div>
+
+        <!-- Cột phải: Tabs Đang Mở -->
+        <aside class="side-panel" id="open-tabs-panel">
+             <div class="panel-header">
+                <h3>TABS</h3>
+                <button id="refresh-tabs-btn" title="refresh">↻</button>
+            </div>
+            <div class="panel-content">
+                <ul id="open-tabs-list"></ul>
+            </div>
+        </aside>
+    </div>
+
+    <div id="vhb-settings-modal-overlay" style="display: none;">
+        <div class="settings-modal">
+            <button id="close-vhb-modal-btn" class="close-modal-btn">&times;</button>
+            <h3>Virtual home button</h3>
+            
+            <div class="modal-section">
+                <label>On/Off:</label>
+                <label class="switch">
+                    <input type="checkbox" id="vhb-enabled-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="modal-section">
+                <label for="vhb-emoji-input">Emoji:</label>
+                <input type="text" id="vhb-emoji-input" maxlength="2">
+            </div>
+
+            <div class="modal-section">
+                <label for="vhb-size-slider">Size:</label>
+                <div class="slider-wrapper">
+                    <input type="range" id="vhb-size-slider" min="40" max="100" step="2">
+                    <span id="vhb-size-value"></span>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label for="vhb-opacity-slider">Opacity:</label>
+                <div class="slider-wrapper">
+                    <input type="range" id="vhb-opacity-slider" min="0.1" max="1" step="0.05">
+                    <span id="vhb-opacity-value"></span>
+                </div>
+            </div>
+
+            <button id="save-vhb-settings-btn" class="action-button">Save</button>
+        </div>
+    </div>
+
+    <script src="lib/dexie.min.js"></script>
+
+    <script src="manager.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+#virtual-home-button.glass {
+  /* Các thuộc tính quan trọng để nút hoạt động */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99999999;
+  display: none;
+  
+  /* Kích thước và độ mờ mặc định (sẽ bị JS ghi đè) */
+  width: 60px;
+  height: 60px;
+  opacity: 0.5;
+  
+  /* --- GIỮ NGUYÊN TOÀN BỘ HIỆU ỨNG KÍNH CỦA BẠN --- */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .08);
+  border: 0px solid transparent;
+  box-shadow: 0 0 0 1px rgba(107, 107, 107, 0.336), 0 16px 32px rgba(0, 0, 0, .12);
+  backdrop-filter: url(#frosted); 
+  -webkit-backdrop-filter: url(#frosted);
+  
+  /* Các thuộc tính để căn giữa nội dung (emoji) */
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  outline: 0;
+  transition: opacity 0.3s, transform 0.2s;
+}
+
+#virtual-home-button.glass:hover {
+    transform: scale(1.1);
+}
+
+/* Style cho emoji bên trong nút */
+#virtual-home-button.glass span {
+    /* Kích thước mặc định (sẽ bị JS ghi đè) */
+    font-size: 28px; 
+    pointer-events: none; /* Ngăn emoji bắt sự kiện chuột */
+    color: white; /* Đảm bảo emoji luôn có màu trắng */
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Thêm bóng đổ cho dễ nhìn */
+}
+
+/* --- BẮT ĐẦU: STYLE CHO RADIAL MENU --- */
+
+/* Lớp phủ làm mờ nền */
+#v-home-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2147483645; /* Rất cao để đè lên mọi thứ */
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Container chứa các bong bóng tab */
+#v-home-radial-menu {
+    position: fixed;
+    z-index: 2147483646; /* Cao hơn lớp phủ */
+    /* Vị trí top/left sẽ được JS thiết lập */
+}
+
+/* Bong bóng chứa icon tab */
+.v-home-tab-bubble {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+    
+    /* Hiệu ứng xuất hiện */
+    transform: translate(-50%, -50%) scale(0);
+    animation: bubble-pop 0.3s forwards;
+}
+
+.v-home-tab-bubble:hover {
+    width: 52px;
+    height: 52px;
+    border: 1px;
+    transform: translate(-50%, -50%) scale(1.2);
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Icon bên trong bong bóng */
+.v-home-tab-bubble img {
+    width: 25px;
+    height: 25px;
+    pointer-events: none; /* Ngăn icon bắt sự kiện chuột */
+}
+
+.v-home-tab-bubble:hover img {
+    width: 30px;
+    height: 30px;
+    pointer-events: none; /* Ngăn icon bắt sự kiện chuột */
+}
+
+/* Animation cho bong bóng */
+@keyframes bubble-pop {
+    to {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* --- BẮT ĐẦU: STYLE CHO EMOJI TRONG BONG BÓNG --- */
+.v-home-tab-emoji {
+    font-size: 24px; /* Kích thước phù hợp cho bong bóng 48px */
+    line-height: 1;
+    /* Ngăn người dùng vô tình chọn văn bản emoji */
+    user-select: none; 
+    -webkit-user-select: none;
+}
+
+/* Điều chỉnh style cho IMG để nó không bị ảnh hưởng bởi style chung */
+.v-home-tab-bubble img {
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
+}
+/* --- KẾT THÚC --- */

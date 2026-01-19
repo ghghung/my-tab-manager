@@ -1,0 +1,62 @@
+Truy cập: script.google.com và nhấn "Dự án mới" (New Project).
+Xóa hết code cũ và dán đoạn code sau vào:
+
+function doPost(e) {
+  try {
+    // 1. Lấy dữ liệu từ tiện ích gửi lên
+    var data = e.postData.contents;
+    var fileName = "my-tab-manager-data.json";
+    
+    // 2. Kiểm tra xem file đã tồn tại chưa
+    var files = DriveApp.getFilesByName(fileName);
+    var file;
+    
+    if (files.hasNext()) {
+      // Nếu có rồi thì cập nhật nội dung
+      file = files.next();
+      file.setContent(data);
+    } else {
+      // Nếu chưa có thì tạo mới
+      file = DriveApp.createFile(fileName, data);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success", time: new Date()}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  try {
+    var fileName = "my-tab-manager-data.json";
+    var files = DriveApp.getFilesByName(fileName);
+    
+    if (files.hasNext()) {
+      var file = files.next();
+      var content = file.getBlob().getDataAsString();
+      return ContentService.createTextOutput(content)
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+
+Nhấn biểu tượng đĩa mềm (Save) đặt tên dự án là "Tab Manager Sync".
+Nhấn nút "Triển khai" (Deploy) (màu xanh dương góc phải) -> "Tùy chọn triển khai mới" (New deployment).
+Chọn loại: Ứng dụng web (Web app) (biểu tượng bánh răng bên trái).
+Cấu hình như sau (Rất quan trọng):
+Mô tả: Version 1
+Thực thi dưới dạng (Execute as): Tôi (Me).
+Ai có quyền truy cập (Who has access): Bất kỳ ai (Anyone). (Đừng lo, chỉ ai có link mới truy cập được, và code này chỉ sửa đúng 1 file tên là my-tab-manager-data.json).
+Nhấn Triển khai (Deploy). Google sẽ yêu cầu bạn cấp quyền truy cập Drive, hãy đồng ý (Chọn Advanced -> Go to ... (unsafe) nếu được hỏi).
+Copy URL Ứng dụng web (Web App URL). (Nó bắt đầu bằng https://script.google.com/macros/s/.../exec).
