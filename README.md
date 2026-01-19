@@ -64,7 +64,7 @@ Your data will now automatically sync to a file named `my-tab-manager-data.json`
 
 ## 🖱️ Usage Tips
 
-*   **Switching Interfaces:** Click the Laptop icon (💻) in the bottom-left footer to toggle between Simple and macOS Modern mode.
+*   **Switching Interfaces:** Click the icon (❀) in the bottom-left footer to toggle between Simple and macOS Modern mode.
 *   **Quick Open:**
     *   **Middle Click** on any shortcut to open it in a new background tab.
     *   **Right Click** to access options like "Open in new App" (Popup window), Rename, or Delete.
