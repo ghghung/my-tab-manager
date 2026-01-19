@@ -31,6 +31,9 @@ Since this extension is not yet on the Chrome Web Store, you need to install it 
 5.  Select the folder containing the extracted files.
 6.  Open a new tab to see it in action!
 
+<img width="1928" height="1113" alt="image" src="https://github.com/user-attachments/assets/4c99052c-e561-492d-93dc-e4c4c50031a9" />
+
+
 ## ☁️ How to Set Up Cloud Sync
 
 To sync your data across devices without a third-party server, we use a free **Google Apps Script** linked to your Google Drive.
@@ -61,6 +64,9 @@ To sync your data across devices without a third-party server, we use a free **G
 4.  Click **Save & Auto-Sync**.
 
 Your data will now automatically sync to a file named `my-tab-manager-data.json` in your Google Drive!
+
+<img width="1929" height="1113" alt="image" src="https://github.com/user-attachments/assets/d816921c-3de4-4f43-a929-999c05f53322" />
+
 
 ## 🖱️ Usage Tips
 
