@@ -36,6 +36,11 @@
       "matches": ["<all_urls>"],
       "css": ["home-button.css"],
       "js": ["home-button.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "css": ["spotlight.css"],
+      "js": ["spotlight.js"]
     }
   ],
   "web_accessible_resources": [

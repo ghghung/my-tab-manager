@@ -343,10 +343,19 @@ body.light-mode .spaces-list-container::-webkit-scrollbar-thumb:hover { backgrou
 }
 
 /* --- CSS CHO POPUP CÀI ĐẶT NÚT HOME ẢO --- */
-#vhb-settings-modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center;
-    justify-content: center; z-index: 1001; backdrop-filter: blur(5px);
+#vhb-settings-modal-overlay,
+#sync-settings-modal-overlay {  /* <-- THÊM DÒNG NÀY */
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); 
+    display: flex; 
+    align-items: center;     /* Căn giữa dọc */
+    justify-content: center; /* Căn giữa ngang */
+    z-index: 1001; 
+    backdrop-filter: blur(5px);
 }
 .settings-modal { /* Dùng chung class với popup video */
     background-color: var(--panel-bg); padding: 25px; border-radius: 12px;
@@ -813,4 +822,176 @@ body.sidebar-collapsed .main-container {
 #add-collection-btn {
     font-size: 15px; /* Dấu cộng thường trông nhỏ hơn nên tăng size lên xíu */
     padding-bottom: 2px; /* Đẩy lên 1 chút cho cân tâm */
+}
+
+/* --- MACOS SPOTLIGHT SEARCH STYLE (UPDATED) --- */
+
+/* Lớp phủ màn hình */
+#spotlight-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* THUỘC TÍNH CHUNG CHO THANH BAR VÀ KẾT QUẢ (Để đảm bảo chiều rộng bằng nhau) */
+#spotlight-bar, #spotlight-results {
+    width: 600px;
+    max-width: 90%;
+    box-sizing: border-box; /* QUAN TRỌNG: Để padding không làm lệch kích thước */
+    
+    /* Hiệu ứng kính: Tăng Opacity và Blur */
+    background-color: rgba(255, 255, 255, 0.60); /* Trắng đục hơn (0.9) */
+    backdrop-filter: blur(20px) saturate(180%);   /* Blur mạnh hơn */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Thanh tìm kiếm chính */
+#spotlight-bar {
+    margin-top: 20vh;
+    height: 50px;
+    
+    border-radius: 20px; /* Bo tròn đều */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(255, 255, 255, 0.3); /* Viền sáng */
+    
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    transition: border-radius 0.1s;
+}
+
+/* Khi có kết quả: Bo góc trên, phẳng góc dưới */
+#spotlight-bar.has-results {
+    border-radius: 20px 20px 0 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Ẩn Icon kính lúp ở thanh tìm kiếm (Theo yêu cầu) */
+.spotlight-icon {
+    display: none; 
+}
+
+#spotlight-input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #000;      /* Chữ màu đen */
+    font-weight: 700; /* Chữ in đậm (Bold) */
+    outline: none;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    height: 100%;
+}
+
+#spotlight-input::placeholder {
+    color: rgba(0, 0, 0, 0.2); /* Màu đen nhưng độ trong suốt rất cao (rất mờ) */
+    font-weight: 400; /* Mảnh hơn chữ khi nhập */
+}
+
+#spotlight-input::-webkit-input-placeholder {
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.spotlight-separator {
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.1); /* Màu đường kẻ mờ */
+    margin: 8px 15px; /* Khoảng cách trên/dưới và lùi vào 2 bên */
+    display: block;
+    pointer-events: none; /* Không tương tác được */
+}
+
+/* Bảng kết quả */
+#spotlight-results {
+    border-radius: 0 0 20px 20px; /* Bo góc dưới */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    padding: 5px 0; /* Padding nhỏ hơn */
+}
+
+#spotlight-results::-webkit-scrollbar {
+    width: 0px;
+}
+
+/* Item kết quả */
+.spotlight-item {
+    /* 1. Giảm khoảng cách (Padding) */
+    padding: 4px 20px; /* Cũ là 6px 20px */
+    
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    
+    /* 2. Xóa đường viền ngăn cách */
+    border-bottom: none; 
+    
+    /* 3. Giảm chiều cao tổng thể */
+    height: 28px; /* Cũ là 32px */
+    
+    color: #000;
+}
+
+/* (Giữ nguyên phần này) */
+.spotlight-item:last-child {
+    border-bottom: none;
+}
+
+/* Hiệu ứng chọn */
+.spotlight-item.selected, .spotlight-item:hover {
+    background-color: #0061D5;
+    color: white !important; /* Chữ trắng khi được chọn */
+}
+
+/* Icon của item kết quả */
+.spotlight-item-icon {
+    width: 20px; /* Nhỏ lại */
+    height: 20px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* Nếu không có icon (trường hợp Google Search đã bỏ emoji), ẩn luôn margin để chữ sát lề */
+.spotlight-item-icon:empty {
+    display: none;
+}
+
+.spotlight-item-icon img {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.spotlight-item-text {
+    flex-grow: 1;
+    font-size: 14px; /* Giảm size chữ (Cũ là 18px) */
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Loại kết quả (App/Dock/Google...) */
+.spotlight-item-type {
+    font-size: 11px;
+    opacity: 0.5;
+    margin-left: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.spotlight-item.selected .spotlight-item-type {
+    opacity: 0.8;
+    color: white;
 }

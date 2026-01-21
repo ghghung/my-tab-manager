@@ -1,4 +1,13 @@
-importScripts('db.js');
+try {
+    importScripts('db.js');
+} catch (e) {
+    console.warn('Chưa cấu hình db.js hoặc Dexie, chức năng chụp ảnh có thể không hoạt động.');
+}
+
+// --- CÁC BIẾN TOÀN CỤC ---
+let captureInterval = null;
+let activeTabId = null;
+
 // --- CÁC HÀM TÁI SỬ DỤNG ---
 
 // Mở hoặc focus vào tab quản lý
@@ -18,11 +27,13 @@ function openOrFocusManagerTab() {
 // Kiểm tra tab hiện tại để ẩn/hiện nút home
 function checkTabAndToggleButton(tabId) {
     chrome.tabs.get(tabId, (tab) => {
-        if (chrome.runtime.lastError || !tab || !tab.url) {
-            return;
-        }
+        if (chrome.runtime.lastError || !tab || !tab.url) return;
+        
         const managerUrl = chrome.runtime.getURL('manager.html');
-        const action = (tab.url === managerUrl) ? 'hideHomeButton' : 'showHomeButton';
+        // So sánh tương đối để hỗ trợ nhiều trường hợp
+        const isManager = tab.url.includes('manager.html') && tab.url.includes(chrome.runtime.id);
+        
+        const action = isManager ? 'hideHomeButton' : 'showHomeButton';
         chrome.tabs.sendMessage(tabId, { action }).catch(err => {});
     });
 }
@@ -39,92 +50,233 @@ async function updateRecentTabs(tabId) {
     await chrome.storage.session.set({ recentTabIds: currentIds });
 }
 
+// --- LOGIC CHỤP ẢNH XEM TRƯỚC (SCREENSHOT) ---
 
-// --- ĐĂNG KÝ CÁC EVENT LISTENER (ĐÃ KẾT HỢP) ---
+function startCaptureInterval(tabId) {
+    stopCaptureInterval();
+    activeTabId = tabId;
+    
+    // Kiểm tra nếu db chưa sẵn sàng thì bỏ qua
+    if (typeof db === 'undefined') return;
 
-// 1. Sự kiện click vào icon của tiện ích
+    const capture = async () => {
+        try {
+            // Chỉ chụp khi tab đang active và cửa sổ đang focus
+            const tab = await chrome.tabs.get(tabId);
+            if (tab.active) {
+                const imageDataUrl = await chrome.tabs.captureVisibleTab(null, {
+                    format: 'jpeg',
+                    quality: 50
+                });
+                await db.screenshots.put({ tabId: tabId, imageData: imageDataUrl });
+            }
+        } catch (error) {
+            // Lỗi thường gặp: tab đóng, trang bị hạn chế (chrome://)...
+            stopCaptureInterval();
+        }
+    };
+
+    // Chụp ngay lần đầu
+    capture();
+    // Lặp lại mỗi 10s
+    captureInterval = setInterval(capture, 10000);
+}
+
+function stopCaptureInterval() {
+    if (captureInterval) {
+        clearInterval(captureInterval);
+        captureInterval = null;
+    }
+    activeTabId = null;
+}
+
+// --- ĐĂNG KÝ CÁC EVENT LISTENER ---
+
+// 1. Click icon tiện ích
 chrome.action.onClicked.addListener(openOrFocusManagerTab);
 
-// 2. Sự kiện khi người dùng chuyển tab (onActivated)
+// 2. Chuyển tab (Activated)
 chrome.tabs.onActivated.addListener((activeInfo) => {
-    // Thực hiện cả hai tác vụ cần thiết
     checkTabAndToggleButton(activeInfo.tabId);
     updateRecentTabs(activeInfo.tabId);
+    startCaptureInterval(activeInfo.tabId);
 });
 
-// 3. Sự kiện khi một tab được cập nhật (onUpdated)
+// 3. Cập nhật tab (Updated - ví dụ load xong trang)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
         checkTabAndToggleButton(tabId);
     }
 });
 
-// 4. Lắng nghe tất cả tin nhắn từ content script (onMessage)
+// 4. Chuyển cửa sổ (Focus Changed)
+chrome.windows.onFocusChanged.addListener((windowId) => {
+    if (windowId === chrome.windows.WINDOW_ID_NONE) {
+        stopCaptureInterval();
+    } else {
+        chrome.tabs.query({ active: true, windowId: windowId }, (tabs) => {
+            if (tabs.length > 0) startCaptureInterval(tabs[0].id);
+        });
+    }
+});
+
+// 5. LẮNG NGHE TIN NHẮN (MESSAGE HUB)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    // Xử lý hành động 'goHome'
+    
+    // A. Điều hướng cơ bản
     if (request.action === 'goHome') {
         openOrFocusManagerTab();
-        return; // Không cần phản hồi, kết thúc sớm
+        return;
     }
 
-    // Xử lý hành động 'switchToTab'
-    if (request.action === 'switchToTab' && request.tabId) {
-        chrome.tabs.update(request.tabId, { active: true });
-        chrome.windows.update(request.windowId, { focused: true });
-        return; // Không cần phản hồi
+    if (request.action === 'switchToTab') {
+        if (request.tabId) {
+            // 1. Chuyển đến tab đang mở (Switch)
+            chrome.tabs.update(request.tabId, { active: true });
+            chrome.windows.update(request.windowId, { focused: true });
+        } else if (request.url) {
+            // 2. Mở URL mới (Open new & Focus)
+            // Dùng cái này thay cho window.open để đảm bảo focus đúng
+            chrome.tabs.create({ url: request.url, active: true });
+        } else {
+            // 3. Mở tab trống (Default)
+            chrome.tabs.create({ active: true });
+        }
+        return;
     }
 
-    // Xử lý hành động 'getRecentTabs' (cần phản hồi bất đồng bộ)
+    // B. Lấy danh sách tab gần đây (cho Radial Menu)
     if (request.action === 'getRecentTabs') {
-        const getTabsDetails = async () => {
-            const result = await chrome.storage.session.get(['recentTabIds']);
-            const recentTabIds = result.recentTabIds || [];
-            const tabs = [];
-            for (const tabId of recentTabIds) {
-                try {
-                    const tab = await chrome.tabs.get(tabId);
-                    if (!tab || tab.url.startsWith('chrome-extension://')) continue;
+        const getAllOpenTabs = async () => {
+            // 1. Lấy toàn bộ tab đang mở trong trình duyệt
+            // currentWindow: false để lấy cả các tab ở cửa sổ khác (nếu muốn chỉ cửa sổ hiện tại thì để true)
+            const tabs = await chrome.tabs.query({}); 
+            
+            const processedTabs = [];
+            
+            for (const tab of tabs) {
+                // Bỏ qua các tab không có tiêu đề hoặc URL (đang load)
+                if (!tab.url) continue;
 
-                    let finalIconUrl = null; // Mặc định là null
+                let finalIconUrl = null;
 
-                    // Chỉ xử lý icon cho các trang web http/https
-                    if (tab.url.startsWith('http://') || tab.url.startsWith('https://')) {
-                        try {
-                            const url = new URL(tab.url);
-                            const hostname = url.hostname;
-
-                            // --- BẮT ĐẦU PHẦN CẢI TIẾN ---
-
-                            // KIỂM TRA NGOẠI LỆ: Nếu là tên miền của Google
-                            if (hostname.includes('google.com')) {
-                                // Ưu tiên 1: Lấy icon cụ thể từ Chrome, vì nó chính xác hơn cho các sản phẩm Google (Sheets, Docs, v.v.)
-                                finalIconUrl = tab.favIconUrl;
-                            } else {
-                                // Mặc định cho tất cả các trang web khác: Dùng API Google để đảm bảo độ tin cậy
-                                finalIconUrl = `https://s2.googleusercontent.com/s2/favicons?domain=${hostname}&sz=64`;
-                            }
-
-                            // --- KẾT THÚC PHẦN CẢI TIẾN ---
-
-                        } catch (e) {
-                            // Nếu URL không hợp lệ, finalIconUrl sẽ vẫn là null
-                            console.warn('Không thể phân tích URL để lấy favicon:', tab.url);
+                // Logic xử lý Icon thông minh (Giữ nguyên để đảm bảo icon đẹp)
+                if (tab.url.startsWith('http')) {
+                    try {
+                        const url = new URL(tab.url);
+                        // Ngoại lệ: Google Services dùng favicon gốc của Chrome
+                        if (url.hostname.includes('google.com')) {
+                            finalIconUrl = tab.favIconUrl;
+                        } else {
+                            // Còn lại dùng API Google
+                            finalIconUrl = `https://s2.googleusercontent.com/s2/favicons?domain=${url.hostname}&sz=64`;
                         }
-                    }
-                    // Đối với các tab hệ thống (chrome://), finalIconUrl sẽ vẫn là null, hiển thị emoji là đúng.
+                    } catch (e) { }
+                }
 
-                    tabs.push({
-                        id: tab.id,
-                        windowId: tab.windowId,
-                        favIconUrl: finalIconUrl
-                    });
+                // Nếu là trang nội bộ (chrome://) thì finalIconUrl vẫn là null -> Client sẽ tự xử lý fallback
 
-                } catch (e) { /* Bỏ qua nếu tab đã đóng */ }
+                processedTabs.push({
+                    id: tab.id,
+                    windowId: tab.windowId,
+                    favIconUrl: finalIconUrl,
+                    title: tab.title,
+                    url: tab.url,
+                    active: tab.active // Thêm trạng thái active để có thể highlight tab hiện tại nếu cần
+                });
             }
-            sendResponse(tabs);
+            
+            // Trả về toàn bộ danh sách
+            sendResponse(processedTabs);
         };
         
-        getTabsDetails();
-        return true; // Quan trọng: Báo hiệu rằng sendResponse sẽ được gọi sau
+        getAllOpenTabs();
+        return true; // Báo hiệu phản hồi bất đồng bộ
+    }
+
+    // C. Lấy ảnh chụp màn hình (cho Preview)
+    if (request.action === 'getTabScreenshot') {
+        if (typeof db !== 'undefined') {
+            db.screenshots.get(request.tabId).then(result => {
+                sendResponse(result ? result.imageData : null);
+            }).catch(() => sendResponse(null));
+        } else {
+            sendResponse(null);
+        }
+        return true;
+    }
+
+    // D. Lấy dữ liệu Shortcut (cho Spotlight Content Script)
+    if (request.action === 'getSpotlightData') {
+        const getAsyncData = async () => {
+            const storageData = await chrome.storage.local.get(['shortcuts', 'dockShortcuts', 'collections']);
+            const openTabs = await chrome.tabs.query({}); // Lấy tất cả tab đang mở
+            
+            const internalResults = [];
+
+            // 1. Open Tabs (Ưu tiên số 1)
+            openTabs.forEach(tab => {
+                internalResults.push({
+                    name: tab.title,
+                    url: tab.url,
+                    favIconUrl: tab.favIconUrl,
+                    id: tab.id,       // Cần ID để switch tab
+                    windowId: tab.windowId,
+                    type: 'Open Tab', // Loại mới
+                    source: 'internal_tab' // Đánh dấu nguồn riêng
+                });
+            });
+            
+            // 2. Desktop Shortcuts
+            if (storageData.shortcuts) {
+                storageData.shortcuts.forEach(s => internalResults.push({ ...s, type: 'App', source: 'internal_storage' }));
+            }
+            // 3. Dock Shortcuts
+            if (storageData.dockShortcuts) {
+                storageData.dockShortcuts.forEach(s => {
+                    if (!internalResults.some(r => r.url === s.url && r.source === 'internal_storage')) {
+                        internalResults.push({ ...s, type: 'Dock', source: 'internal_storage' });
+                    }
+                });
+            }
+            // 4. Saved Collections
+            if (storageData.collections) {
+                storageData.collections.forEach(col => {
+                    if (col.sections) {
+                        col.sections.forEach(sec => {
+                            if (sec.cards) {
+                                sec.cards.forEach(card => {
+                                    internalResults.push({ 
+                                        name: card.title, 
+                                        url: card.url, 
+                                        favIconUrl: card.favIconUrl,
+                                        type: 'Saved', 
+                                        source: 'internal_storage' 
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            
+            sendResponse(internalResults);
+        };
+
+        getAsyncData();
+        return true; // Báo hiệu bất đồng bộ
+    }
+
+    // E. Lấy gợi ý Google (Proxy để tránh CORS)
+    if (request.action === 'getGoogleSuggestions') {
+        const query = request.query;
+        const url = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => sendResponse(data))
+            .catch(error => sendResponse(null));
+            
+        return true;
     }
 });

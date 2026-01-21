@@ -113,6 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const modernContainer = document.getElementById('modern-container');
     const desktopArea = document.getElementById('desktop-area');
+        desktopArea.addEventListener('dblclick', (e) => {
+            // Chỉ kích hoạt khi click vào chính vùng nền (desktopArea)
+            // Nếu click vào icon (.desktop-icon) thì e.target sẽ là icon, lệnh này sẽ bỏ qua
+            if (e.target === desktopArea) {
+                toggleSpotlight();
+            }
+        });
+
     const macosDock = document.getElementById('macos-dock');
     const viewToggleBtn = document.getElementById('view-toggle-btn');
     const wallpaperInput = document.getElementById('wallpaper-input');
@@ -1459,6 +1467,18 @@ const handleSectionDrop = (e) => {
         wpBtn.innerHTML = `<div style="font-size: 30px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">🎨</div>`;
         wpBtn.addEventListener('click', () => wallpaperInput.click());
         macosDock.appendChild(wpBtn);
+
+        const searchBtn = document.createElement('div');
+        searchBtn.className = 'dock-item';
+        searchBtn.dataset.title = 'Search'; // Tooltip khi hover
+        
+        // Dùng Emoji kính lúp, căn giữa đẹp mắt
+        searchBtn.innerHTML = `<div style="font-size: 24px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">🔍</div>`;
+        
+        // Sự kiện click để bật/tắt Spotlight
+        searchBtn.addEventListener('click', toggleSpotlight);
+        
+        macosDock.appendChild(searchBtn);
     };
 
     // --- LOGIC CONTEXT MENU ---
@@ -1735,6 +1755,283 @@ const handleSectionDrop = (e) => {
         applySidebarState();
         saveData(); // Lưu lại thiết lập
     });
+
+    // --- LOGIC MACOS SPOTLIGHT ---
+
+    const spotlightOverlay = document.getElementById('spotlight-overlay');
+    const spotlightInput = document.getElementById('spotlight-input');
+    const spotlightResults = document.getElementById('spotlight-results');
+    const spotlightBar = document.getElementById('spotlight-bar');
+    
+    let spotlightSelectedIndex = 0;
+    let spotlightData = []; // Mảng chứa kết quả hiển thị
+
+    // 1. Hàm bật/tắt Spotlight
+    const toggleSpotlight = () => {
+        // Chỉ hoạt động ở chế độ Modern
+        const interfaceMode = appData.settings.currentInterface || 'simple';
+        if (viewMode !== 'home' || interfaceMode !== 'modern') return;
+
+        if (spotlightOverlay.style.display === 'none') {
+            spotlightOverlay.style.display = 'flex';
+            spotlightInput.value = '';
+            spotlightResults.style.display = 'none';
+            spotlightBar.classList.remove('has-results');
+            spotlightInput.focus();
+        } else {
+            spotlightOverlay.style.display = 'none';
+        }
+    };
+
+    // 2. Lắng nghe phím tắt (Alt+Space hoặc Cmd+Space)
+    let lastSpacePressTime = 0;
+
+    // 2. Lắng nghe phím tắt (Nhấn Space 2 lần)
+    document.addEventListener('keydown', (e) => {
+        // A. Xử lý đóng Spotlight bằng ESC (Giữ nguyên)
+        if (e.key === 'Escape' && spotlightOverlay.style.display === 'flex') {
+            toggleSpotlight();
+            return;
+        }
+
+        // B. Xử lý Double Space
+        if (e.code === 'Space') {
+            // Quan trọng: Không kích hoạt nếu đang gõ chữ trong ô input nào đó
+            // (Trừ ô spotlight input thì cho phép để người dùng gõ dấu cách)
+            const activeTag = document.activeElement.tagName;
+            const isInput = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement.isContentEditable;
+            
+            // Nếu đang focus vào input (mà không phải là spotlight input), thì bỏ qua logic này
+            if (isInput && document.activeElement !== spotlightInput) return;
+
+            const now = Date.now();
+            // Nếu khoảng cách giữa 2 lần nhấn < 300ms (0.3 giây)
+            if (now - lastSpacePressTime < 300) {
+                e.preventDefault(); // Ngăn cuộn trang
+                toggleSpotlight();
+                lastSpacePressTime = 0; // Reset để tránh kích hoạt lần 3
+            } else {
+                lastSpacePressTime = now; // Ghi nhận lần nhấn đầu tiên
+            }
+        }
+        
+        // ... (Phần điều hướng mũi tên cho Spotlight đã có ở bên dưới, giữ nguyên) ...
+    });
+
+    // Đóng khi click ra ngoài vùng trắng
+    spotlightOverlay.addEventListener('click', (e) => {
+        if (e.target === spotlightOverlay) toggleSpotlight();
+    });
+
+    // 3. Hàm tìm kiếm tổng hợp (Đã cập nhật: Tab đang mở + Tăng giới hạn)
+    const performSpotlightSearch = async (query) => {
+        if (!query) {
+            spotlightResults.style.display = 'none';
+            spotlightBar.classList.remove('has-results');
+            return;
+        }
+
+        const lowerQuery = query.toLowerCase();
+        
+        // A. TÌM TRONG TAB ĐANG MỞ (Open Tabs)
+        const openTabs = await chrome.tabs.query({});
+        const matchedTabs = openTabs.filter(tab => 
+            (tab.title && tab.title.toLowerCase().includes(lowerQuery)) || 
+            (tab.url && tab.url.toLowerCase().includes(lowerQuery))
+        ).map(tab => ({
+            id: tab.id,
+            windowId: tab.windowId,
+            name: tab.title,
+            url: tab.url,
+            favIconUrl: tab.favIconUrl,
+            type: 'Open Tab',
+            source: 'internal_tab' // Đánh dấu là tab đang mở
+        }));
+
+        // B. TÌM TRONG DỮ LIỆU ĐÃ LƯU (Shortcuts, Dock, Cards)
+        const storageResults = [];
+        
+        // 1. Desktop
+        appData.shortcuts.forEach(s => {
+            if (s.name.toLowerCase().includes(lowerQuery) || s.url.toLowerCase().includes(lowerQuery)) {
+                storageResults.push({ ...s, type: 'App', source: 'internal_storage' });
+            }
+        });
+
+        // 2. Dock
+        if (appData.dockShortcuts) {
+            appData.dockShortcuts.forEach(s => {
+                if (!storageResults.some(r => r.url === s.url)) {
+                    if (s.name.toLowerCase().includes(lowerQuery) || s.url.toLowerCase().includes(lowerQuery)) {
+                        storageResults.push({ ...s, type: 'Dock', source: 'internal_storage' });
+                    }
+                }
+            });
+        }
+
+        // 3. Saved Cards
+        appData.collections.forEach(col => {
+            col.sections.forEach(sec => {
+                sec.cards.forEach(card => {
+                    if (card.title.toLowerCase().includes(lowerQuery) || card.note.toLowerCase().includes(lowerQuery)) {
+                        storageResults.push({ 
+                            name: card.title, 
+                            url: card.url, 
+                            favIconUrl: card.favIconUrl,
+                            type: 'Saved', 
+                            source: 'internal_storage' 
+                        });
+                    }
+                });
+            });
+        });
+
+        // Lấy tối đa 5 kết quả đã lưu (Thay vì 3 như trước)
+        const topStorage = storageResults.slice(0, 5);
+
+        // C. TÌM KIẾM GOOGLE SUGGESTIONS
+        const googleSuggestions = [];
+        try {
+            const url = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data && data[1]) {
+                data[1].forEach(sug => {
+                    googleSuggestions.push({
+                        name: sug,
+                        url: `https://www.google.com/search?q=${encodeURIComponent(sug)}`,
+                        type: 'Google',
+                        source: 'external'
+                    });
+                });
+            }
+        } catch (err) {}
+
+        // D. GỘP KẾT QUẢ: Open Tabs (Đầu tiên) -> Saved Items (5 cái) -> Google
+        spotlightData = [...matchedTabs, ...topStorage, ...googleSuggestions];
+        renderSpotlightResults();
+    };
+
+    // 4. Render kết quả
+    const renderSpotlightResults = () => {
+        spotlightResults.innerHTML = '';
+        
+        if (spotlightData.length === 0) {
+            spotlightResults.style.display = 'none';
+            spotlightBar.classList.remove('has-results');
+            return;
+        }
+
+        spotlightResults.style.display = 'block';
+        spotlightBar.classList.add('has-results');
+        spotlightSelectedIndex = 0; 
+
+        spotlightData.forEach((item, index) => {
+            // --- LOGIC CHÈN GẠCH NGANG ---
+            // Nếu không phải dòng đầu tiên
+            // VÀ dòng này là Google (external)
+            // VÀ dòng trước đó là Nội bộ (internal)
+            const isCurrentInternal = item.source === 'internal_tab' || item.source === 'internal_storage';
+            const prevItem = spotlightData[index - 1];
+            
+            if (index > 0 && item.source === 'external' && 
+               (prevItem.source === 'internal_tab' || prevItem.source === 'internal_storage')) {
+                const separator = document.createElement('div');
+                separator.className = 'spotlight-separator';
+                spotlightResults.appendChild(separator);
+            }
+            // -----------------------------
+
+            const div = document.createElement('div');
+            div.className = `spotlight-item ${index === 0 ? 'selected' : ''}`;
+            // Lưu ý: data-index vẫn phải khớp với chỉ số trong mảng spotlightData
+            // Bất kể có separator hay không
+            div.dataset.index = index;
+            
+            let iconHtml = '';
+            
+            // KIỂM TRA CẢ 2 LOẠI DỮ LIỆU NỘI BỘ MỚI
+            if (item.source === 'internal_tab' || item.source === 'internal_storage') {
+                const iconUrl = chrome.runtime.getURL('icons/icon16.png');
+                // Sử dụng hàm thông minh để lấy icon (tab đang mở cũng có url và favIconUrl)
+                const iconSrc = getSmartIconUrl(item.url, item.favIconUrl);
+                iconHtml = `<img src="${iconSrc}" onerror="this.src='${iconUrl}'">`;
+            } else {
+                iconHtml = '🔍︎'; // Google Search không hiện icon
+            }
+
+            div.innerHTML = `
+                <div class="spotlight-item-icon">${iconHtml}</div>
+                <div class="spotlight-item-text">${item.name}</div>
+                <div class="spotlight-item-type">${item.type}</div>
+            `;
+
+            div.addEventListener('click', () => executeSpotlightItem(item));
+            div.addEventListener('mouseenter', () => {
+                updateSpotlightSelection(index);
+            });
+
+            spotlightResults.appendChild(div);
+        });
+    };
+
+    // 5. Điều hướng bằng bàn phím
+    const updateSpotlightSelection = (index) => {
+        const items = document.querySelectorAll('.spotlight-item');
+        items.forEach(i => i.classList.remove('selected'));
+        if (items[index]) {
+            items[index].classList.add('selected');
+            items[index].scrollIntoView({ block: 'nearest' });
+            spotlightSelectedIndex = index;
+        }
+    };
+
+    spotlightInput.addEventListener('keydown', (e) => {
+        if (spotlightData.length === 0) {
+            if (e.key === 'Enter') {
+                // Nếu không có kết quả, Enter = Tìm Google nội dung đang nhập
+                const query = spotlightInput.value.trim();
+                if (query) {
+                    chrome.tabs.update({ url: `https://www.google.com/search?q=${encodeURIComponent(query)}` });
+                    toggleSpotlight();
+                }
+            }
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextIndex = (spotlightSelectedIndex + 1) % spotlightData.length;
+            updateSpotlightSelection(nextIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevIndex = (spotlightSelectedIndex - 1 + spotlightData.length) % spotlightData.length;
+            updateSpotlightSelection(prevIndex);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            executeSpotlightItem(spotlightData[spotlightSelectedIndex]);
+        }
+    });
+
+    // Debounce input
+    spotlightInput.addEventListener('input', () => {
+        clearTimeout(debounceTimeout);
+        const query = spotlightInput.value.trim();
+        debounceTimeout = setTimeout(() => { performSpotlightSearch(query); }, 150);
+    });
+
+    // 6. Thực thi item
+    const executeSpotlightItem = (item) => {
+        if (item.source === 'internal_tab') {
+            // Nếu là tab đang mở -> Chuyển tới tab đó
+            chrome.tabs.update(item.id, { active: true });
+            chrome.windows.update(item.windowId, { focused: true });
+        } else {
+            // Nếu là cái khác -> Mở tab mới
+            chrome.tabs.create({ url: item.url, active: true });
+        }
+        toggleSpotlight();
+    };
 
     // --- INITIALIZATION ---
     const init = async () => { 
