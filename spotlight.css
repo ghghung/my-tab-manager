@@ -1,70 +1,272 @@
-/* spotlight.css */
-
-/* Lớp phủ màn hình */
+/* --- LỚP PHỦ MÀN HÌNH (OVERLAY) --- */
 #ext-spotlight-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 2147483647; /* Max z-index để đè lên mọi web */
-    background: rgba(0, 0, 0, 0.25); /* Tối nền nhẹ, KHÔNG BLUR */
+    z-index: 2147483647; /* Max Z-Index để đè lên mọi trang web */
+    
+    /* Nền tối nhẹ, KHÔNG làm mờ trang web phía sau để giữ hiệu suất */
+    background: rgba(0, 0, 0, 0.25); 
+    
     display: none; /* Ẩn mặc định */
     flex-direction: column;
     align-items: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
 }
 
-/* THUỘC TÍNH CHUNG */
-#ext-spotlight-bar, #ext-spotlight-results {
+/* --- CONTAINER BAO BỌC THANH SEARCH --- */
+#ext-spotlight-wrapper {
+    margin-top: 20vh;
     width: 600px;
     max-width: 90%;
-    box-sizing: border-box;
-    background-color: rgba(255, 255, 255, 0.9); 
+    height: 50px;
+    display: flex;
+    align-items: center;
+    /* THAY ĐỔI QUAN TRỌNG: Đẩy thanh search và nút về 2 phía */
+    justify-content: space-between; 
+    position: relative;
+}
+
+/* --- THANH TÌM KIẾM CHÍNH (BAR) --- */
+#ext-spotlight-bar {
+    margin-top: 0;
+    height: 50px;
+    
+    /* TRẠNG THÁI MẶC ĐỊNH: */
+    /* Tự động chiếm hết không gian còn lại (trừ phần của các nút) */
+    width: 100%; 
+    /* Nhưng bị giới hạn lại bởi margin bên phải để chừa chỗ cho nút */
+    margin-right: 15px; 
+    
+    border-radius: 25px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2), 
+                0 0 0 1px rgba(255, 255, 255, 0.4),
+                0 0 0 1px rgba(0, 0, 0, 0.05); 
+    
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    
+    /* Hiệu ứng chuyển đổi */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(50px) saturate(180%);   
     -webkit-backdrop-filter: blur(50px) saturate(180%);
 }
 
-/* Thanh tìm kiếm */
-#ext-spotlight-bar {
-    margin-top: 20vh;
-    height: 50px;
-    border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 
-                0 0 0 1px rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    transition: border-radius 0.1s;
+/* TRẠNG THÁI MỞ RỘNG (KHI CÓ CHỮ) */
+#ext-spotlight-bar.expanded {
+    margin-right: 0; /* Xóa khoảng cách, nó sẽ tự giãn ra 100% */
 }
 
+/* Khi có kết quả tìm kiếm bên dưới: Bo phẳng 2 góc dưới */
 #ext-spotlight-bar.has-results {
-    border-radius: 24px 24px 0 0;
+    border-radius: 25px 25px 0 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Ô nhập liệu (Input) */
 #ext-spotlight-input {
     flex-grow: 1;
     background: transparent;
     border: none;
     font-size: 24px;
-    color: #000;
-    font-weight: 700;
+    color: #000;      /* Chữ đen đậm */
+    font-weight: 700; /* In đậm */
     outline: none;
     height: 100%;
     padding: 0;
     margin: 0;
 }
 
+/* Placeholder (Chữ gợi ý mờ) */
 #ext-spotlight-input::placeholder {
     color: rgba(0, 0, 0, 0.2);
     font-weight: 400;
 }
 
-/* Bảng kết quả */
+/* --- KHU VỰC CÁC NÚT CHỨC NĂNG (ACTIONS) --- */
+#ext-spotlight-actions {
+    display: flex;
+    gap: 12px;
+    height: 50px; 
+    align-items: center;
+    width: 180px; 
+    min-width: 180px;
+    
+    /* --- SỬA LỖI KHUNG ĐEN MỜ --- */
+    /* 1. Xóa nền và viền nếu có (để chắc chắn) */
+    background: transparent;
+    border: none;
+    box-shadow: none;
+
+    /* 2. Cho phép hiển thị tràn viền để không cắt mất bóng đổ của nút */
+    overflow: visible; /* Cũ là hidden */
+    /* --------------------------- */
+    
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+}
+
+/* Khi thanh search mở rộng -> Thu nhỏ vùng nút lại bằng 0 */
+#ext-spotlight-actions.hidden {
+    width: 0;
+    min-width: 0;
+    opacity: 0;
+    gap: 0;
+    transform: scale(0.8);
+    margin-left: 0;
+    
+    /* --- SỬA LỖI --- */
+    /* Chỉ cắt ẩn nội dung khi đang thu nhỏ */
+    overflow: hidden; 
+    padding: 0; /* Xóa padding khi ẩn */
+    margin-top: 0;
+    /* -------------- */
+}
+
+/* Style cho từng nút tròn */
+.ext-action-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    
+    /* Glassmorphism cho nút */
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+                
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    
+    font-size: 24px;
+    color: #333;
+    user-select: none;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.ext-action-btn:hover {
+    transform: scale(1.1);
+    background-color: white;
+    color: #000;
+}
+
+.ext-action-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- DANH SÁCH TAB GẦN ĐÂY (RECENT TABS - FOCUS MODE) --- */
+#ext-spotlight-recent {
+    width: 600px;
+    max-width: 90%;
+    margin-top: 15px;
+    box-sizing: border-box;
+    
+    /* Trạng thái mặc định: Cực mờ, chìm xuống */
+    background-color: rgba(0, 0, 0, 0.1); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    
+    border-radius: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    
+    display: none; 
+    transition: all 0.3s ease;
+    padding: 10px 0;
+}
+
+#ext-spotlight-recent::-webkit-scrollbar { width: 0px; }
+
+/* Khi Hover vào hộp: Hiện rõ lên nền đen nhám */
+#ext-spotlight-recent:hover {
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Item tab gần đây */
+.ext-recent-item {
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    height: 32px;
+    border-radius: 12px;
+    margin: 2px 10px;
+    
+    /* Trạng thái mặc định: Mờ nhạt (chìm) */
+    opacity: 0.5;
+    filter: grayscale(40%);
+    transition: all 0.2s ease;
+}
+
+/* Khi hover vào hộp lớn -> Các item rõ lên một chút */
+#ext-spotlight-recent:hover .ext-recent-item {
+    opacity: 0.8;
+    filter: grayscale(0%);
+}
+
+/* Khi hover vào chính item đó -> Sáng rực */
+.ext-recent-item:hover, .ext-recent-item.selected {
+    opacity: 1 !important;
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.01);
+}
+
+.ext-recent-text {
+    flex-grow: 1;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.ext-recent-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+}
+
+.ext-recent-icon img {
+    width: 100%; height: 100%; border-radius: 4px;
+}
+
+/* --- BẢNG KẾT QUẢ TÌM KIẾM (SEARCH RESULTS) --- */
 #ext-spotlight-results {
-    border-radius: 0 0 24px 24px;
+    width: 600px;
+    max-width: 90%;
+    box-sizing: border-box;
+    
+    /* Giống thanh search bar */
+    background-color: rgba(255, 255, 255, 0.95); 
+    backdrop-filter: blur(50px) saturate(180%);   
+    -webkit-backdrop-filter: blur(50px) saturate(180%);
+    
+    border-radius: 0 0 24px 24px; /* Bo 2 góc dưới */
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    
     max-height: 400px;
     overflow-y: auto;
     display: none;
@@ -73,16 +275,18 @@
 
 #ext-spotlight-results::-webkit-scrollbar { width: 0px; }
 
-/* Item */
+/* Item kết quả tìm kiếm */
 .ext-spotlight-item {
-    padding: 4px 20px;
+    padding: 4px 20px; /* Gọn gàng */
     display: flex;
     align-items: center;
     cursor: pointer;
     height: 28px;
     color: #000;
+    border-bottom: none; /* Không có đường kẻ giữa các dòng */
 }
 
+/* Hiệu ứng chọn (Xanh macOS) */
 .ext-spotlight-item.selected, .ext-spotlight-item:hover {
     background-color: #0061D5;
     color: white !important;
@@ -96,10 +300,15 @@
     align-items: center;
     justify-content: center;
 }
+
 .ext-spotlight-icon img {
     width: 100%; height: 100%; border-radius: 4px;
 }
-.ext-spotlight-icon:empty { display: none; }
+
+/* Ẩn vùng icon nếu không có icon (Google search) */
+.ext-spotlight-icon:empty {
+    display: none;
+}
 
 .ext-spotlight-text {
     flex-grow: 1;
@@ -117,121 +326,17 @@
     text-transform: uppercase;
     font-weight: 600;
 }
-.ext-spotlight-item.selected .ext-spotlight-type { opacity: 0.8; color: white; }
 
+.ext-spotlight-item.selected .ext-spotlight-type {
+    opacity: 0.8;
+    color: white;
+}
+
+/* Đường gạch ngang phân cách giữa Internal và Google */
 .ext-spotlight-separator {
     height: 1px;
     background-color: rgba(0, 0, 0, 0.1);
     margin: 8px 15px;
     display: block;
     pointer-events: none;
-}
-
-/* --- DANH SÁCH TAB GẦN ĐÂY (RECENT TABS) --- */
-
-#ext-spotlight-recent {
-    width: 600px;
-    max-width: 90%;
-    margin-top: 15px;
-    box-sizing: border-box;
-    
-    /* --- SỬA ĐỔI: TRẠNG THÁI MẶC ĐỊNH --- */
-    /* Nền đen cực mờ (10%) */
-    background-color: rgba(0, 0, 0, 0.03); 
-    
-    /* Luôn có hiệu ứng làm nhòe nhẹ background đằng sau */
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(8px);
-    
-    /* Viền rất mờ */
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    /* ------------------------------------ */
-    
-    border-radius: 20px;
-    max-height: 400px;
-    overflow-y: auto;
-    
-    display: none; 
-    transition: all 0.3s ease; /* Tăng thời gian chuyển đổi cho mượt */
-    padding: 10px 0;
-}
-
-/* (Giữ nguyên scrollbar) */
-#ext-spotlight-recent::-webkit-scrollbar { width: 0px; }
-
-/* Hiệu ứng khi Hover vào HỘP CHỨA: Hiện rõ lên */
-#ext-spotlight-recent:hover {
-    background-color: rgba(0, 0, 0, 0.3); /* Đen đậm hơn */
-    backdrop-filter: blur(25px); /* Nhòe mạnh hơn */
-    -webkit-backdrop-filter: blur(25px);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-    transform: translateY(-2px); /* Nhích nhẹ lên chút tạo cảm giác nổi */
-}
-
-/* Item trong danh sách */
-.ext-recent-item {
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    height: 32px;
-    border-radius: 12px;
-    margin: 2px 10px;
-    
-    /* --- SỬA ĐỔI: TRẠNG THÁI MẶC ĐỊNH --- */
-    /* Làm mờ nội dung đi (chỉ còn 50% độ rõ) */
-    opacity: 0.2; 
-    /* Giảm bớt độ rực màu để trông "chìm" hơn */
-    filter: grayscale(40%);
-    
-    transition: all 0.2s ease;
-    /* ------------------------------------ */
-}
-
-/* --- LOGIC HIỂN THỊ THÔNG MINH --- */
-
-/* 1. Khi chuột Hover vào HỘP CHỨA LỚN (#ext-spotlight-recent) */
-/* Thì làm tất cả các item rõ lên một chút (80%) để dễ đọc */
-#ext-spotlight-recent:hover .ext-recent-item {
-    opacity: 0.8;
-    filter: grayscale(0%);
-}
-
-/* 2. Khi chuột Hover vào CHÍNH ITEM ĐÓ (hoặc item đang được chọn bằng phím) */
-/* Thì làm item đó rõ nhất (100%) và có nền sáng */
-.ext-recent-item:hover, .ext-recent-item.selected {
-    opacity: 1 !important; /* Dùng !important để ghi đè dòng trên */
-    background-color: rgba(255, 255, 255, 0.15);
-    transform: scale(1.01); /* Phóng to cực nhẹ */
-}
-
-.ext-recent-text {
-    flex-grow: 1;
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    
-    /* Chữ trắng có bóng đổ */
-    color: white;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-}
-
-.ext-recent-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Icon cũng có bóng đổ nhẹ để nổi trên nền tối */
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
-}
-
-.ext-recent-icon img {
-    width: 100%;
-    height: 100%;
-    border-radius: 4px;
 }

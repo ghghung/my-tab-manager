@@ -187,8 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     fontStyle: 'normal',
                     colorDark: '#cccccc',
                     colorLight: '#333333'
+                },
+
+                spotlight: {
+                    enableExternal: true,
+                    enableDblClick: true,
+                    enableDblSpace: true,
+                    icon1: '⚝',
+                    link1: '',
+                    icon2: '❉',
+                    link1: '',
+                    link2: 'https://www.google.com/search?udm=50',
+                    iconManager: '🦄'
                 }
             };
+            appData.settings.spotlight = { ...defaultSettings.spotlight, ...(appData.settings.spotlight || {}) };
             appData.settings.homeTitle = { ...defaultSettings.homeTitle, ...(appData.settings.homeTitle || {}) };
             appData.settings = { ...defaultSettings, ...appData.settings };
             
@@ -1229,6 +1242,16 @@ const handleSectionDrop = (e) => {
     chrome.tabs.onCreated.addListener(renderOpenTabs);
     chrome.tabs.onRemoved.addListener(renderOpenTabs);
     chrome.tabs.onUpdated.addListener((tabId, changeInfo) => { if (changeInfo.url || changeInfo.title || changeInfo.status) { renderOpenTabs(); } });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            renderOpenTabs();
+        }
+    });
+    
+    window.addEventListener('focus', () => {
+        renderOpenTabs();
+    });
         // Lắng nghe sự thay đổi trong chrome.storage từ các tab khác
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace !== 'local') return;
@@ -1257,6 +1280,68 @@ const handleSectionDrop = (e) => {
     // Khi click vào nút kính lúp, focus vào ô input để nó hiện ra
     localSearchBtn.addEventListener('click', () => {
         localSearchInput.focus();
+    });
+
+    // --- LOGIC CÀI ĐẶT SPOTLIGHT ---
+    const spotlightSettingsBtn = document.getElementById('spotlight-settings-btn');
+    const spotlightModalOverlay = document.getElementById('spotlight-settings-modal-overlay');
+    const closeSpotlightModalBtn = document.getElementById('close-spotlight-modal-btn');
+    const saveSpotlightSettingsBtn = document.getElementById('save-spotlight-settings-btn');
+    
+    // Inputs
+    const slEnableToggle = document.getElementById('spotlight-enable-toggle');
+    const slDblClickToggle = document.getElementById('spotlight-dblclick-toggle');
+    const slDblSpaceToggle = document.getElementById('spotlight-dblspace-toggle');
+
+    const slIcon1 = document.getElementById('spotlight-icon1');
+    const slLink1 = document.getElementById('spotlight-link1');
+
+    const slIcon2 = document.getElementById('spotlight-icon2');
+    const slLink2 = document.getElementById('spotlight-link2');
+
+    const slIconManager = document.getElementById('spotlight-icon-manager');
+
+    // Mở Modal
+    spotlightSettingsBtn.addEventListener('click', () => {
+        const s = appData.settings.spotlight;
+        slEnableToggle.checked = s.enableExternal;
+        slDblClickToggle.checked = s.enableDblClick;
+        slDblSpaceToggle.checked = s.enableDblSpace;
+        
+        slIcon1.value = s.icon1 || '✦';
+        slLink1.value = s.link1 || '';
+        
+        slIcon2.value = s.icon2 || '❉';
+        slLink2.value = s.link2 || '';
+        
+        slIconManager.value = s.iconManager || '⌂';
+        
+        spotlightModalOverlay.style.display = 'flex';
+    });
+
+    // Đóng Modal
+    const closeSpotlightModal = () => spotlightModalOverlay.style.display = 'none';
+    closeSpotlightModalBtn.addEventListener('click', closeSpotlightModal);
+    spotlightModalOverlay.addEventListener('click', (e) => { if (e.target === spotlightModalOverlay) closeSpotlightModal(); });
+
+    // Lưu Settings
+    saveSpotlightSettingsBtn.addEventListener('click', () => {
+        appData.settings.spotlight = {
+            enableExternal: slEnableToggle.checked,
+            enableDblClick: slDblClickToggle.checked,
+            enableDblSpace: slDblSpaceToggle.checked,
+            
+            icon1: slIcon1.value.trim() || '✦',
+            link1: slLink1.value.trim(),
+            
+            icon2: slIcon2.value.trim() || '❉',
+            link2: slLink2.value.trim(),
+            
+            iconManager: slIconManager.value.trim() || '⌂'
+        };
+        saveData(); 
+        closeSpotlightModal();
+        alert("Settings saved! Reload existing tabs to see changes.");
     });
 
     // --- BẮT ĐẦU: LOGIC CLOUD SYNC ---

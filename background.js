@@ -122,6 +122,11 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 // 5. LẮNG NGHE TIN NHẮN (MESSAGE HUB)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+    if (request.action === 'openManager') {
+        openOrFocusManagerTab();
+        return;
+    }
     
     // A. Điều hướng cơ bản
     if (request.action === 'goHome') {
@@ -147,34 +152,59 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // B. Lấy danh sách tab gần đây (cho Radial Menu)
     if (request.action === 'getRecentTabs') {
-        const getAllOpenTabs = async () => {
-            // 1. Lấy toàn bộ tab đang mở trong trình duyệt
-            // currentWindow: false để lấy cả các tab ở cửa sổ khác (nếu muốn chỉ cửa sổ hiện tại thì để true)
-            const tabs = await chrome.tabs.query({}); 
+        const getAllOpenTabsSorted = async () => {
+            // 1. Lấy lịch sử truy cập gần đây từ bộ nhớ
+            const sessionData = await chrome.storage.session.get(['recentTabIds']);
+            const recentIds = sessionData.recentTabIds || [];
+
+            // 2. Lấy toàn bộ tab đang mở
+            const allTabs = await chrome.tabs.query({});
             
+            // 3. Tạo Map để tìm tab theo ID cho nhanh
+            const tabsMap = new Map();
+            allTabs.forEach(tab => tabsMap.set(tab.id, tab));
+
+            const finalSortedTabs = [];
+            const addedTabIds = new Set(); // Để tránh trùng lặp
+
+            // --- BƯỚC SẮP XẾP ---
+            
+            // A. Ưu tiên đưa các tab trong danh sách "Gần đây" vào trước
+            for (const tabId of recentIds) {
+                if (tabsMap.has(tabId)) {
+                    finalSortedTabs.push(tabsMap.get(tabId));
+                    addedTabIds.add(tabId);
+                }
+            }
+
+            // B. Đưa các tab còn lại (chưa bao giờ click vào hoặc bị trôi khỏi lịch sử) vào sau
+            allTabs.forEach(tab => {
+                if (!addedTabIds.has(tab.id)) {
+                    finalSortedTabs.push(tab);
+                }
+            });
+
+            // --------------------
+
+            // 4. Xử lý dữ liệu đầu ra (Icon, Title...) như cũ
             const processedTabs = [];
             
-            for (const tab of tabs) {
-                // Bỏ qua các tab không có tiêu đề hoặc URL (đang load)
+            for (const tab of finalSortedTabs) {
                 if (!tab.url) continue;
 
                 let finalIconUrl = null;
 
-                // Logic xử lý Icon thông minh (Giữ nguyên để đảm bảo icon đẹp)
+                // Logic Icon thông minh
                 if (tab.url.startsWith('http')) {
                     try {
                         const url = new URL(tab.url);
-                        // Ngoại lệ: Google Services dùng favicon gốc của Chrome
                         if (url.hostname.includes('google.com')) {
                             finalIconUrl = tab.favIconUrl;
                         } else {
-                            // Còn lại dùng API Google
                             finalIconUrl = `https://s2.googleusercontent.com/s2/favicons?domain=${url.hostname}&sz=64`;
                         }
                     } catch (e) { }
                 }
-
-                // Nếu là trang nội bộ (chrome://) thì finalIconUrl vẫn là null -> Client sẽ tự xử lý fallback
 
                 processedTabs.push({
                     id: tab.id,
@@ -182,16 +212,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     favIconUrl: finalIconUrl,
                     title: tab.title,
                     url: tab.url,
-                    active: tab.active // Thêm trạng thái active để có thể highlight tab hiện tại nếu cần
+                    active: tab.active
                 });
             }
             
-            // Trả về toàn bộ danh sách
             sendResponse(processedTabs);
         };
         
-        getAllOpenTabs();
-        return true; // Báo hiệu phản hồi bất đồng bộ
+        getAllOpenTabsSorted();
+        return true; 
     }
 
     // C. Lấy ảnh chụp màn hình (cho Preview)

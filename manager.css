@@ -180,11 +180,11 @@ body.light-mode .action-button:hover {
 
 /* Định dạng lại tất cả các nút trong footer thành icon vuông */
 .spaces-footer button {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     padding: 0; /* Bỏ padding cũ */
-    font-size: 15px; /* Tăng kích thước icon/chữ */
-    line-height: 30px; /* Căn giữa icon theo chiều dọc */
+    font-size: 18px; /* Tăng kích thước icon/chữ */
+    line-height: 26px; /* Căn giữa icon theo chiều dọc */
     text-align: center; /* Căn giữa icon theo chiều ngang */
     
     /* Thêm hiệu ứng hover chung */
@@ -344,7 +344,8 @@ body.light-mode .spaces-list-container::-webkit-scrollbar-thumb:hover { backgrou
 
 /* --- CSS CHO POPUP CÀI ĐẶT NÚT HOME ẢO --- */
 #vhb-settings-modal-overlay,
-#sync-settings-modal-overlay {  /* <-- THÊM DÒNG NÀY */
+#sync-settings-modal-overlay,  /* <-- THÊM DÒNG NÀY */
+#spotlight-settings-modal-overlay {
     position: fixed; 
     top: 0; 
     left: 0; 

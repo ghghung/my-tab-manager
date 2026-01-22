@@ -37,6 +37,9 @@
                     <button id="theme-toggle-btn">☼</button>
                 </div>
                 <div class="setting-item">
+                    <button id="spotlight-settings-btn" title="Spotlight Settings">⛶</button> <!-- Nút Mới -->
+                </div>
+                <div class="setting-item">
                     <button id="vhb-settings-btn" title="Virtual home button">⏣</button>
                 </div>
                 <div class="setting-item">
@@ -74,6 +77,58 @@
                     <div id="sync-status" style="font-size: 12px; color: var(--accent-color); height: 20px;"></div>
 
                     <button id="save-sync-settings-btn" class="action-button" style="width: 100%; margin-top: 10px;">Save & Auto-Sync</button>
+                </div>
+            </div>
+
+            <div id="spotlight-settings-modal-overlay" style="display: none;">
+                <div class="settings-modal">
+                    <button id="close-spotlight-modal-btn" class="close-modal-btn">&times;</button>
+                    <h3>Spotlight Settings</h3>
+                    
+                    <div class="modal-section">
+                        <label>Enable on External Sites:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="spotlight-enable-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="modal-section">
+                        <label>Activation Methods:</label>
+                        <div style="display: flex; gap: 15px; width: 100%;">
+                            <label style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="spotlight-dblclick-toggle"> Double Click
+                            </label>
+                            <label style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" id="spotlight-dblspace-toggle"> Double Space
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="modal-section" style="width: 100%; flex-direction: column; align-items: flex-start; gap: 5px;">
+                        <label>Button 1 (Icon & Link):</label>
+                        <div style="display: flex; gap: 10px; width: 100%;">
+                            <input type="text" id="spotlight-icon1" placeholder="Icon" maxlength="2" style="width: 60px; text-align: center; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                            <input type="text" id="spotlight-link1" placeholder="https://..." style="flex-grow: 1; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                    </div>
+
+                    <!-- CẤU HÌNH NÚT 2 -->
+                    <div class="modal-section" style="width: 100%; flex-direction: column; align-items: flex-start; gap: 5px;">
+                        <label>Button 2 (Icon & Link):</label>
+                        <div style="display: flex; gap: 10px; width: 100%;">
+                            <input type="text" id="spotlight-icon2" placeholder="Icon" maxlength="2" style="width: 60px; text-align: center; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                            <input type="text" id="spotlight-link2" placeholder="https://..." style="flex-grow: 1; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                        </div>
+                    </div>
+
+                    <!-- CẤU HÌNH NÚT 3 (MANAGER) -->
+                    <div class="modal-section" style="width: 100%; flex-direction: row; align-items: center; justify-content: space-between;">
+                        <label for="spotlight-icon-manager">Manager Button Icon:</label>
+                        <input type="text" id="spotlight-icon-manager" placeholder="Icon" maxlength="2" style="width: 60px; text-align: center; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                    </div>
+
+                    <button id="save-spotlight-settings-btn" class="action-button" style="width: 100%; margin-top: 10px;">Save Settings</button>
                 </div>
             </div>
         </aside>
