@@ -1,84 +1,74 @@
-# My Tab Manager 🚀
+🚀 My Tab Manager
+My Tab Manager is a powerful, aesthetic, and highly customizable browser extension designed to replace your "New Tab" page. It combines the utility of a bookmark manager, the speed of a spotlight search, and the beauty of a modern operating system interface.
 
-A powerful and customizable Chrome Extension that replaces your default New Tab page. It helps you manage open tabs, save shortcuts, and organize your workspace with a beautiful, modern interface inspired by macOS.
+<img width="2017" height="1054" alt="Screenshot 2026-01-22 161919" src="https://github.com/user-attachments/assets/a189e92c-bede-46d8-99d2-656698d66cad" />
 
-## ✨ Key Features
+✨ Key Features
+1. Dual Interface Modes
+Switch instantly between two distinct visual styles based on your preference:
+Simple Mode: A clean, grid-based layout focused on efficiency. Perfect for users who want quick access to collections and shortcuts without distractions.
+Modern Mode (macOS Style): A stunning interface inspired by macOS.
+Desktop Area: Pin your favorite shortcuts anywhere.
+The Dock: A beautiful, animated bottom bar with a magnification effect for your most-used apps.
+Custom Wallpapers: Upload high-resolution images from your computer to personalize your background (supports large files via IndexedDB).
+Glassmorphism: Elegant blur and transparency effects throughout the UI.
+2. 🔍 Universal Spotlight Search
+Access your tabs and links from anywhere, not just the new tab page.
+Smart Activation: Trigger Spotlight by Double-tapping Space or Double-clicking on an empty area of any webpage.
+Adaptive UI: When opened, the bar shows customizable Quick Action Buttons (with custom Emojis and Links). Start typing, and it expands to a full search bar.
+Universal Search: Simultaneously searches through:
+Currently Open Tabs (prioritized at the top).
+Saved Shortcuts and Collections.
+Google Search suggestions.
+Recent Tabs: When empty, it displays a "Focus" style list of your recently active tabs for quick switching.
+3. drag-and-drop Organization
+Managing links has never been this intuitive.
+Drag & Drop: Move tabs from the "Open Tabs" list directly onto your Desktop, Dock, or into specific Collections.
+Smart Sorting: Reorder icons on your Desktop or Dock naturally.
+Context Menu: Right-click any icon to Open in New Tab, Open in App Mode (Popup), Rename, or Delete.
+4. Virtual Home Button
+A floating button that sits unobtrusively on your screen.
+Quick Menu: Right-click to reveal a radial menu of your recent tabs.
+Tab Preview: Hover over the radial menu bubbles to see a real-time screenshot preview of that tab.
+☁️ Cloud Sync & Backup Guide
+My Tab Manager offers a unique, serverless sync solution using Google Drive. This allows you to sync your layout, links, and settings across multiple computers without creating a 3rd party account.
+You need to set up a Google Apps Script to act as your personal cloud backend.
+Step 1: Create the Google Script
+Go to script.google.com.
+Click "New Project".
+Open the file named code gg script.txt included in this extension's folder.
+Copy the entire content of that text file.
+Paste it into the script editor (replace any existing code).
+Name the project (e.g., "Tab Manager Sync").
+Step 2: Deploy the Web App
+Click the blue Deploy button (top right) > New deployment.
+Click the gear icon next to "Select type" and choose Web app.
+Configure the settings exactly as follows:
+Description: v1 (or anything you like).
+Execute as: Me (your email).
+Who has access: Anyone (This is required for the extension to reach the script, but only people with the exact link can access your data).
+Click Deploy.
+Authorize the app (Click "Review permissions" -> Choose account -> Advanced -> Go to ... (unsafe) -> Allow).
+Step 3: Connect the Extension
+Copy the Web App URL provided by Google (starts with https://script.google.com/...).
+Open My Tab Manager.
+Click the Cloud Icon (☁) in the sidebar footer.
+Paste the URL into the input field.
+Click Save & Auto-Sync.
+Your data (Collections, Shortcuts, Settings) will now automatically sync to a file named my-tab-manager-data.json in your Google Drive!
+📦 Installation (Developer Mode)
+Clone or download this repository.
+Open Chrome and navigate to chrome://extensions/.
+Toggle Developer mode in the top right corner.
+Click Load unpacked.
+Select the folder containing this extension.
 
-*   **Dual Interface Modes:**
-    *   **Simple Mode:** A clean, grid-based layout focused on productivity.
-    *   **Modern Mode (macOS Style):** A stunning interface featuring a desktop area and a dynamic Dock with magnification effects.
-*   **Virtual Home Button:** A floating button accessible on any webpage.
-    *   **Radial Menu:** Right-click to access your 10 most recent tabs in a circular menu.
-    *   **Tab Preview:** Hover over bubbles in the radial menu to see a live screenshot preview of the tab.
-*   **Smart Drag & Drop:**
-    *   Drag tabs from the "Open Tabs" panel directly to your Desktop or Dock to save them.
-    *   Reorder shortcuts easily.
-*   **Cloud Sync:** Sync your collections and shortcuts across multiple computers using your own Google Drive (via Google Apps Script).
-*   **Customization:**
-    *   Change wallpapers (supports large images).
-    *   Dark/Light mode.
-    *   Customizable Home Title (fonts, colors, styles).
-*   **Smart Icons:** Automatically fetches high-quality icons for websites, with special handling for Google Apps (Docs, Sheets, Drive) and Localhost addresses.
+<img width="1929" height="1113" alt="Screenshot 2026-01-19 211635" src="https://github.com/user-attachments/assets/f0c90bf0-f573-484e-8ee8-5c3559749e69" />
+<img width="2015" height="1142" alt="Screenshot 2026-01-22 162012" src="https://github.com/user-attachments/assets/47f1392c-c097-480d-9f04-6129f316d6d8" />
 
-## 🛠️ Installation (Developer Mode)
-
-Since this extension is not yet on the Chrome Web Store, you need to install it manually:
-
-1.  **Download** this repository (Clone or Download ZIP and extract it).
-2.  Open Chrome and navigate to `chrome://extensions/`.
-3.  Enable **Developer mode** in the top-right corner.
-4.  Click the **Load unpacked** button.
-5.  Select the folder containing the extracted files.
-6.  Open a new tab to see it in action!
-
-<img width="1280" height="800" alt="Screenshot 2026-01-19 212409" src="https://github.com/user-attachments/assets/4f85c420-91de-4cca-b0e3-ee179a6db6ec" />
-
-
-## ☁️ How to Set Up Cloud Sync
-
-To sync your data across devices without a third-party server, we use a free **Google Apps Script** linked to your Google Drive.
-
-### Step 1: Create the Backend Script
-1.  Go to [script.google.com](https://script.google.com/) and click **"New Project"**.
-2.  Open the file **`code gg script.txt`** included in this repository.
-3.  Copy the entire content of `code gg script.txt`.
-4.  Paste it into the script editor on Google Apps Script (replace any existing code).
-5.  Save the project (Name it "Tab Manager Sync").
-
-### Step 2: Deploy the Web App
-1.  Click the blue **Deploy** button (top right) -> **New deployment**.
-2.  Click the gear icon next to "Select type" and choose **Web app**.
-3.  Configure the settings exactly as follows:
-    *   **Description:** `v1` (or anything you like).
-    *   **Execute as:** `Me` (your email).
-    *   **Who has access:** `Anyone` (Crucial for the extension to access the script).
-    *   *Note: This is safe because the script only modifies one specific JSON file in your Drive, and only people with the URL can access it.*
-4.  Click **Deploy**.
-5.  Grant the necessary permissions when prompted (Advanced -> Go to ... unsafe).
-6.  **Copy the Web App URL** (starts with `https://script.google.com/...`).
-
-### Step 3: Connect the Extension
-1.  Open a new tab (My Tab Manager).
-2.  Click the **Cloud Icon (☁)** in the bottom left corner.
-3.  Paste your Web App URL into the input field.
-4.  Click **Save & Auto-Sync**.
-
-Your data will now automatically sync to a file named `my-tab-manager-data.json` in your Google Drive!
-
-<img width="1929" height="1113" alt="image" src="https://github.com/user-attachments/assets/d816921c-3de4-4f43-a929-999c05f53322" />
-
-
-## 🖱️ Usage Tips
-
-*   **Switching Interfaces:** Click the icon (❀) in the bottom-left footer to toggle between Simple and macOS Modern mode.
-*   **Quick Open:**
-    *   **Middle Click** on any shortcut to open it in a new background tab.
-    *   **Right Click** to access options like "Open in new App" (Popup window), Rename, or Delete.
-*   **Virtual Home Button:**
-    *   **Left Click:** Go to Tab Manager.
-    *   **Right Click:** Open Radial Menu (Recent Tabs).
-    *   **Drag:** Move the button anywhere on the screen.
-
-## 📝 License
-
-This project is for personal use and educational purposes. Feel free to fork and customize it!
+🛠 Technologies
+HTML5 / CSS3 (CSS Grid, Flexbox, Glassmorphism)
+Vanilla JavaScript (ES6+)
+Dexie.js (IndexedDB wrapper for handling large wallpapers/screenshots)
+Chrome Extension API (Manifest V3)
+Enjoy your organized browsing experience! ✈️
