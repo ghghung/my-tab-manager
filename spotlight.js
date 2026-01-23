@@ -138,6 +138,28 @@
             });
         };
 
+        const createCloseButton = (tabId, parentElement) => {
+            const btn = document.createElement('span');
+            btn.className = 'ext-close-tab-btn';
+            btn.innerHTML = '×'; // Dấu nhân
+            btn.title = 'Close Tab';
+            
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // QUAN TRỌNG: Ngăn chặn việc chuyển tab khi nhấn nút đóng
+                
+                // 1. Gửi lệnh đóng về background
+                chrome.runtime.sendMessage({ action: 'closeTab', tabId: tabId });
+                
+                // 2. Xóa dòng này khỏi giao diện ngay lập tức
+                parentElement.remove();
+                
+                // 3. Cập nhật lại dữ liệu trong mảng (để điều hướng phím không bị lỗi)
+                // (Tùy chọn: Nếu muốn hoàn hảo thì cần filter lại mảng recentTabsData/spotlightData)
+            });
+            
+            return btn;
+        };
+
         const renderRecentTabs = () => {
             recentContainer.innerHTML = '';
             // Chỉ hiện Recent khi thanh search đang ở trạng thái thu gọn (trống)
@@ -161,6 +183,9 @@
                     <div class="ext-recent-icon">${iconHtml}</div>
                     <div class="ext-recent-text">${tab.title || 'Untitled'}</div>
                 `;
+
+                const closeBtn = createCloseButton(tab.id, div);
+                div.appendChild(closeBtn);
 
                 div.addEventListener('mouseenter', () => {
                     document.querySelectorAll('.ext-recent-item').forEach(el => el.classList.remove('selected'));
@@ -323,6 +348,11 @@
                     <div class="ext-spotlight-text">${item.name}</div>
                     <div class="ext-spotlight-type">${item.type}</div>
                 `;
+
+                if (item.source === 'internal_tab') {
+                    const closeBtn = createCloseButton(item.id, div);
+                    div.appendChild(closeBtn);
+                }
 
                 div.addEventListener('mouseenter', () => {
                     document.querySelectorAll('.ext-spotlight-item').forEach(el => el.classList.remove('selected'));

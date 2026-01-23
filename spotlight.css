@@ -340,3 +340,33 @@
     display: block;
     pointer-events: none;
 }
+
+/* --- NÚT ĐÓNG TAB (X) --- */
+.ext-close-tab-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    
+    /* Căn giữa chữ x */
+    display: none; /* Ẩn mặc định */
+    align-items: center;
+    justify-content: center;
+    
+    margin-left: 10px; /* Cách chữ một chút */
+    font-size: 16px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Chỉ hiện khi Hover vào dòng Tab (cha) */
+.ext-recent-item:hover .ext-close-tab-btn,
+.ext-spotlight-item:hover .ext-close-tab-btn {
+    display: flex;
+}
+
+/* Hiệu ứng khi Hover vào nút X */
+.ext-close-tab-btn:hover {
+    color: rgb(255, 4, 4);
+}
