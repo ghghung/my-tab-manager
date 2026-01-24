@@ -98,13 +98,16 @@ Your data (Collections, Shortcuts, Settings) will now automatically sync to a fi
 *   Dexie.js (IndexedDB wrapper for handling large wallpapers/screenshots)
 *   Chrome Extension API (Manifest V3)
 
-## 📜 License
+## License
 
-This project is created for personal use and shared for free with the community. It is licensed under the **MIT License**. Feel free to use, modify, and distribute it as you wish.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-See the [LICENSE](LICENSE) file for more details.
+## Acknowledgments & Third-Party Libraries
+
+This extension uses the following open-source libraries:
+
+*   **Dexie.js** - A Minimalistic Wrapper for IndexedDB. Licensed under the Apache-2.0 License.
+*   **Google Fonts** - Used for interface typography.
 
 ---
-
-Enjoy your organized browsing experience! ✈️
 
