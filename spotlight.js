@@ -145,17 +145,18 @@
             btn.title = 'Close Tab';
             
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // QUAN TRỌNG: Ngăn chặn việc chuyển tab khi nhấn nút đóng
-                
-                // 1. Gửi lệnh đóng về background
-                chrome.runtime.sendMessage({ action: 'closeTab', tabId: tabId });
-                
-                // 2. Xóa dòng này khỏi giao diện ngay lập tức
-                parentElement.remove();
-                
-                // 3. Cập nhật lại dữ liệu trong mảng (để điều hướng phím không bị lỗi)
-                // (Tùy chọn: Nếu muốn hoàn hảo thì cần filter lại mảng recentTabsData/spotlightData)
+            e.stopPropagation(); 
+            
+            // --- SỬA DÒNG NÀY: Dùng parseInt để đảm bảo ID là số ---
+            chrome.runtime.sendMessage({ 
+                action: 'closeTab', 
+                tabId: parseInt(tabId) 
             });
+            // -----------------------------------------------------
+            
+            // Xóa khỏi giao diện
+            parentElement.remove();
+        });
             
             return btn;
         };

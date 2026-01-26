@@ -150,6 +150,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return;
     }
 
+    if (request.action === 'closeTab') {
+        const tabId = parseInt(request.tabId);
+        if (tabId) {
+            chrome.tabs.remove(tabId).catch(error => {
+                // Bỏ qua lỗi nếu tab đã bị tắt trước đó
+                // console.log("Lỗi tắt tab:", error); 
+            });
+        }
+        return;
+    }
+
     // B. Lấy danh sách tab gần đây (cho Radial Menu)
     if (request.action === 'getRecentTabs') {
         const getAllOpenTabsSorted = async () => {
